@@ -1,6 +1,6 @@
 [run]
 install = "true"
 typecheck = "true"
-dev = "python3 -m http.server 8080 --bind 0.0.0.0"
+dev = "sh dev.sh"
 "build:dev" = "sh build.sh"
 "build" = "sh build.sh"
