@@ -14,13 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          citizenship: string | null
+          city: string | null
+          created_at: string
+          dob: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          ssn: string | null
+          state: string | null
+          updated_at: string
+          username: string
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          citizenship?: string | null
+          city?: string | null
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          ssn?: string | null
+          state?: string | null
+          updated_at?: string
+          username: string
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          citizenship?: string | null
+          city?: string | null
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          ssn?: string | null
+          state?: string | null
+          updated_at?: string
+          username?: string
+          zip?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      username_available: { Args: { check_username: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
