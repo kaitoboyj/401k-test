@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile — USA 401k Grant Program</title>
+<meta name="description" content="Set up your profile with the personal details used for your USA 401k grant application.">
+<link rel="icon" type="image/png" href="usa%20logo.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#how-it-works">How It Works</a></li>
+      <li><a href="eligibility.html">Eligibility Requirements</a></li>
+      <li><a href="application.html">Apply</a></li>
+      <li><a href="about.html">About</a></li>
+      <li class="nav-account"></li>
+    </ul>
+    <a href="application.html" class="btn btn-primary">Apply Now</a>
+    <button class="nav-toggle" aria-label="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<section class="page-header">
+  <div class="container page-header-content">
+    <div class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      <span class="current">My Profile</span>
+    </div>
+    <h1>My Profile</h1>
+    <p>Complete your profile once and your application form will be filled in for you automatically.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 3.5rem;">
+  <div class="container" style="max-width: 900px;">
+
+    <div class="profile-status" id="profileStatus" style="display:none;"></div>
+
+    <div class="form-card">
+      <div class="profile-avatar-row">
+        <div class="profile-avatar" id="avatarPreview"><span>?</span></div>
+        <div>
+          <h3 style="margin:0 0 .35rem;">Profile Photo</h3>
+          <p class="step-desc" style="margin:0 0 .75rem;">Upload a clear photo of yourself. JPG or PNG.</p>
+          <button class="btn btn-outline-dark" id="avatarBtn" type="button">Choose Photo</button>
+          <input type="file" id="avatarInput" accept="image/png,image/jpeg" style="display:none;">
+        </div>
+      </div>
+
+      <form id="profileForm">
+        <h3>Account</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Username<span class="required">*</span></label>
+            <input type="text" name="username" class="form-input" minlength="4" required>
+            <small class="field-note" id="usernameNote">Minimum 4 characters and unique to you.</small>
+          </div>
+        </div>
+
+        <h3 style="margin-top:2rem;">Personal Information</h3>
+        <p class="step-desc">Please provide your legal personal details as they appear on government-issued documents.</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>First Name<span class="required">*</span></label>
+            <input type="text" name="first_name" class="form-input" placeholder="John" required>
+          </div>
+          <div class="form-group">
+            <label>Last Name<span class="required">*</span></label>
+            <input type="text" name="last_name" class="form-input" placeholder="Smith" required>
+          </div>
+          <div class="form-group">
+            <label>Email Address<span class="required">*</span></label>
+            <input type="email" name="email" class="form-input" placeholder="john.smith@email.com" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number<span class="required">*</span></label>
+            <input type="tel" name="phone" class="form-input" placeholder="(555) 123-4567" required>
+          </div>
+          <div class="form-group">
+            <label>Date of Birth<span class="required">*</span></label>
+            <input type="date" name="dob" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label>Social Security Number<span class="required">*</span></label>
+            <input type="text" name="ssn" class="form-input" placeholder="123-45-6789" pattern="\d{3}-?\d{2}-?\d{4}" required>
+          </div>
+          <div class="form-group full">
+            <label>Street Address<span class="required">*</span></label>
+            <input type="text" name="address" class="form-input" placeholder="123 Main Street, Apt 4B" required>
+          </div>
+          <div class="form-group">
+            <label>City<span class="required">*</span></label>
+            <input type="text" name="city" class="form-input" placeholder="New York" required>
+          </div>
+          <div class="form-group">
+            <label>State<span class="required">*</span></label>
+            <select name="state" class="form-select" required>
+              <option value="">Select State</option>
+              <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
+              <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
+              <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
+              <option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option>
+              <option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option>
+              <option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
+              <option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option>
+              <option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option><option>New York</option>
+              <option>North Carolina</option><option>North Dakota</option><option>Ohio</option><option>Oklahoma</option>
+              <option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option><option>South Carolina</option>
+              <option>South Dakota</option><option>Tennessee</option><option>Texas</option><option>Utah</option>
+              <option>Vermont</option><option>Virginia</option><option>Washington</option><option>West Virginia</option>
+              <option>Wisconsin</option><option>Wyoming</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ZIP Code<span class="required">*</span></label>
+            <input type="text" name="zip" class="form-input" placeholder="10001" maxlength="5" pattern="[0-9]{5}" required>
+          </div>
+          <div class="form-group">
+            <label>Citizenship Status<span class="required">*</span></label>
+            <select name="citizenship" class="form-select" required>
+              <option value="">Select Status</option>
+              <option>U.S. Citizen</option>
+              <option>Legal Permanent Resident (Green Card)</option>
+              <option>Valid Work Visa Holder</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="auth-alert" id="profileAlert" style="display:none;"></div>
+
+        <div class="form-actions">
+          <a href="application.html" class="btn btn-outline-dark">Go to Application</a>
+          <button class="btn btn-primary" type="submit">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer-bottom">
+    <p>© 2026 USA 401k Grant Program. Your information is only used to review your application.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script type="module">
+import { supabase, requireAuth, getProfile, isProfileComplete, PROFILE_FIELDS } from './js/auth.js';
+
+const form = document.getElementById('profileForm');
+const alertBox = document.getElementById('profileAlert');
+const statusBox = document.getElementById('profileStatus');
+const avatarPreview = document.getElementById('avatarPreview');
+const avatarInput = document.getElementById('avatarInput');
+let avatarDataUrl = null;
+let user = null;
+let originalUsername = '';
+
+function show(msg, kind) {
+  alertBox.style.display = 'block';
+  alertBox.className = 'auth-alert ' + (kind || 'error');
+  alertBox.textContent = msg;
+}
+
+function paintStatus(profile) {
+  statusBox.style.display = 'block';
+  if (isProfileComplete(profile)) {
+    statusBox.className = 'profile-status complete';
+    statusBox.innerHTML = '<strong>Your profile is complete.</strong> Your application form will be filled in with these details.';
+  } else {
+    statusBox.className = 'profile-status incomplete';
+    statusBox.innerHTML = '<strong>Your profile is not finished yet.</strong> Fill in every field below so you can apply without retyping anything.';
+  }
+}
+
+function setAvatar(url, fallback) {
+  avatarPreview.innerHTML = url ? '<img src="' + url + '" alt="Profile photo">' : '<span>' + fallback + '</span>';
+}
+
+document.getElementById('avatarBtn').addEventListener('click', function () { avatarInput.click(); });
+
+avatarInput.addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function () {
+    const img = new Image();
+    img.onload = function () {
+      const size = 256;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const side = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+      avatarDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      setAvatar(avatarDataUrl, '');
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+const usernameInput = form.querySelector('input[name="username"]');
+const usernameNote = document.getElementById('usernameNote');
+let timer;
+usernameInput.addEventListener('input', function () {
+  clearTimeout(timer);
+  const value = usernameInput.value.trim();
+  if (value.toLowerCase() === originalUsername.toLowerCase()) {
+    usernameNote.textContent = 'This is your current username.';
+    usernameNote.className = 'field-note';
+    return;
+  }
+  if (value.length < 4) {
+    usernameNote.textContent = 'Username must be at least 4 characters.';
+    usernameNote.className = 'field-note bad';
+    return;
+  }
+  timer = setTimeout(async function () {
+    const { data } = await supabase.rpc('username_available', { check_username: value });
+    usernameNote.textContent = data ? 'This username is available.' : 'This username is already taken.';
+    usernameNote.className = 'field-note ' + (data ? 'good' : 'bad');
+  }, 350);
+});
+
+(async function init() {
+  user = await requireAuth();
+  if (!user) return;
+  const profile = await getProfile(user.id);
+  if (profile) {
+    originalUsername = profile.username || '';
+    usernameInput.value = profile.username || '';
+    PROFILE_FIELDS.forEach(function (f) {
+      const el = form.querySelector('[name="' + f[0] + '"]');
+      if (el && profile[f[0]]) el.value = profile[f[0]];
+    });
+    if (!profile.email) form.querySelector('[name="email"]').value = user.email || '';
+    setAvatar(profile.avatar_url, ((profile.first_name || profile.username || '?')[0] || '?').toUpperCase());
+  }
+  paintStatus(profile);
+})();
+
+form.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const username = usernameInput.value.trim();
+  if (username.length < 4) return show('Your username must be at least 4 characters long.');
+  if (username.toLowerCase() !== originalUsername.toLowerCase()) {
+    const { data: available } = await supabase.rpc('username_available', { check_username: username });
+    if (!available) return show('That username is already taken. Please choose another one.');
+  }
+
+  const payload = { id: user.id, username: username };
+  PROFILE_FIELDS.forEach(function (f) {
+    const el = form.querySelector('[name="' + f[0] + '"]');
+    if (el) payload[f[0]] = el.value.trim();
+  });
+  if (avatarDataUrl) payload.avatar_url = avatarDataUrl;
+
+  const { error } = await supabase.from('profiles').upsert(payload);
+  if (error) return show(error.message);
+
+  originalUsername = username;
+  show('Your profile has been saved.', 'success');
+  paintStatus(payload);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+</script>
+</body>
+</html>

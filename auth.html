@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In or Create Account — USA 401k Grant Program</title>
+<meta name="description" content="Sign in or create a free account to submit and track your USA 401k grant application.">
+<link rel="icon" type="image/png" href="usa%20logo.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#how-it-works">How It Works</a></li>
+      <li><a href="eligibility.html">Eligibility Requirements</a></li>
+      <li><a href="application.html">Apply</a></li>
+      <li><a href="about.html">About</a></li>
+      <li class="nav-account"></li>
+    </ul>
+    <a href="application.html" class="btn btn-primary">Apply Now</a>
+    <button class="nav-toggle" aria-label="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<section class="page-header">
+  <div class="container page-header-content">
+    <div class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      <span class="current">Account</span>
+    </div>
+    <h1>Sign In or Create an Account</h1>
+    <p>An account is required to apply. Creating one is free and lets you save your information and return to your application at any time.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 3.5rem;">
+  <div class="container" style="max-width: 560px;">
+    <div class="form-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-mode="signin">Sign In</button>
+        <button class="auth-tab" data-mode="signup">Create Account</button>
+      </div>
+
+      <div class="auth-alert" id="authAlert" style="display:none;"></div>
+
+      <form id="signinForm" class="auth-form">
+        <div class="form-group full">
+          <label>Email Address<span class="required">*</span></label>
+          <input type="email" name="email" class="form-input" placeholder="john.smith@email.com" required>
+        </div>
+        <div class="form-group full">
+          <label>Password<span class="required">*</span></label>
+          <input type="password" name="password" class="form-input" placeholder="Your password" required>
+        </div>
+        <button class="btn btn-primary btn-lg" style="width:100%;" type="submit">Sign In</button>
+      </form>
+
+      <form id="signupForm" class="auth-form" style="display:none;">
+        <div class="form-group full">
+          <label>Username<span class="required">*</span></label>
+          <input type="text" name="username" class="form-input" placeholder="At least 4 letters" minlength="4" required>
+          <small class="field-note" id="usernameNote">Minimum 4 characters. Each username can only be used once.</small>
+        </div>
+        <div class="form-group full">
+          <label>Email Address<span class="required">*</span></label>
+          <input type="email" name="email" class="form-input" placeholder="john.smith@email.com" required>
+        </div>
+        <div class="form-group full">
+          <label>Password<span class="required">*</span></label>
+          <input type="password" name="password" class="form-input" placeholder="At least 8 characters" minlength="8" required>
+        </div>
+        <button class="btn btn-primary btn-lg" style="width:100%;" type="submit">Create My Account</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer-bottom">
+    <p>© 2026 USA 401k Grant Program. Applying is free and does not affect your 401(k) balance.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script type="module">
+import { supabase, getSessionUser } from './js/auth.js';
+
+const params = new URLSearchParams(window.location.search);
+const nextPage = (params.get('next') || 'profile.html').replace(/[^a-zA-Z0-9._-]/g, '');
+
+const alertBox = document.getElementById('authAlert');
+const signinForm = document.getElementById('signinForm');
+const signupForm = document.getElementById('signupForm');
+
+function show(msg, kind) {
+  alertBox.style.display = 'block';
+  alertBox.className = 'auth-alert ' + (kind || 'error');
+  alertBox.innerHTML = msg;
+}
+
+document.querySelectorAll('.auth-tab').forEach(function (tab) {
+  tab.addEventListener('click', function () {
+    document.querySelectorAll('.auth-tab').forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    const signup = tab.dataset.mode === 'signup';
+    signupForm.style.display = signup ? 'block' : 'none';
+    signinForm.style.display = signup ? 'none' : 'block';
+    alertBox.style.display = 'none';
+  });
+});
+
+getSessionUser().then(function (user) {
+  if (user) window.location.replace(nextPage);
+});
+
+signinForm.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const fd = new FormData(signinForm);
+  const { error } = await supabase.auth.signInWithPassword({
+    email: String(fd.get('email')).trim(),
+    password: String(fd.get('password'))
+  });
+  if (error) return show(error.message);
+  window.location.replace(nextPage);
+});
+
+const usernameInput = signupForm.querySelector('input[name="username"]');
+const usernameNote = document.getElementById('usernameNote');
+let checkTimer;
+usernameInput.addEventListener('input', function () {
+  clearTimeout(checkTimer);
+  const value = usernameInput.value.trim();
+  if (value.length < 4) {
+    usernameNote.textContent = 'Username must be at least 4 characters.';
+    usernameNote.className = 'field-note bad';
+    return;
+  }
+  checkTimer = setTimeout(async function () {
+    const { data } = await supabase.rpc('username_available', { check_username: value });
+    usernameNote.textContent = data ? 'This username is available.' : 'This username is already taken.';
+    usernameNote.className = 'field-note ' + (data ? 'good' : 'bad');
+  }, 350);
+});
+
+signupForm.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const fd = new FormData(signupForm);
+  const username = String(fd.get('username')).trim();
+  if (username.length < 4) return show('Your username must be at least 4 characters long.');
+
+  const { data: available } = await supabase.rpc('username_available', { check_username: username });
+  if (!available) return show('That username is already taken. Please choose another one.');
+
+  const { data, error } = await supabase.auth.signUp({
+    email: String(fd.get('email')).trim(),
+    password: String(fd.get('password')),
+    options: {
+      data: { username: username },
+      emailRedirectTo: window.location.origin + '/auth.html'
+    }
+  });
+  if (error) return show(error.message);
+
+  if (data.session) {
+    window.location.replace('profile.html');
+  } else {
+    show('Account created. Please check your email and click the confirmation link, then sign in to finish setting up your profile.', 'success');
+    signupForm.reset();
+  }
+});
+</script>
+</body>
+</html>

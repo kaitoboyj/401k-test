@@ -15,10 +15,10 @@
     <ul class="nav-menu" id="navMenu">
       <li><a href="index.html">Home</a></li>
       <li><a href="index.html#how-it-works">How It Works</a></li>
-      <li><a href="eligibility.html">Eligibility</a></li>
+      <li><a href="eligibility.html">Eligibility Requirements</a></li>
       <li><a href="application.html">Apply</a></li>
       <li><a href="about.html">About</a></li>
-      <li><a href="dashboard.html">Dashboard</a></li>
+      <li class="nav-account"></li>
     </ul>
     <a href="application.html" class="btn btn-primary">Apply Now</a>
     <button class="nav-toggle" aria-label="Menu">
@@ -79,13 +79,17 @@
       <h2 style="font-size: 2rem; margin-bottom: 0.75rem; font-family: 'Segoe UI', sans-serif;">Application Submitted Successfully</h2>
       <p style="font-size: 1.1rem; color: var(--gray-600); max-width: 560px; margin: 0 auto 2rem;">Your application <strong style="color: var(--navy-900);">P401K-2026-<span id="appId">A782451</span></strong> has been received. A confirmation email has been sent. Your information will be reviewed to determine approval and the amount you may receive.</p>
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <a href="dashboard.html" class="btn btn-primary btn-lg">View My Dashboard</a>
+        <a href="profile.html" class="btn btn-primary btn-lg">View My Profile</a>
         <a href="index.html" class="btn btn-outline-dark btn-lg">Return Home</a>
       </div>
     </div>
 
     <div class="form-card fade-in">
       <div class="form-step" data-step="1">
+        <div class="profile-status complete" id="prefillBanner" style="display:none;">
+          <strong>Your profile details have been filled in for you.</strong>
+          <a href="profile.html" class="btn btn-green">Profile Complete — Edit Details</a>
+        </div>
         <h3>Step 1: Personal Information</h3>
         <p class="step-desc">Please provide your legal personal details as they appear on government-issued documents.</p>
         <div class="form-grid">
@@ -110,8 +114,8 @@
             <input type="date" name="dob" class="form-input" required>
           </div>
           <div class="form-group">
-            <label>SSN (Last 4 Digits)<span class="required">*</span></label>
-            <input type="text" name="ssn" class="form-input" placeholder="1234" maxlength="4" pattern="[0-9]{4}" required>
+            <label>Social Security Number<span class="required">*</span></label>
+            <input type="text" name="ssn" class="form-input" placeholder="123-45-6789" pattern="\d{3}-?\d{2}-?\d{4}" required>
           </div>
           <div class="form-group full">
             <label>Street Address<span class="required">*</span></label>
@@ -427,7 +431,7 @@
         <ul class="footer-links">
           <li><a href="index.html">Home</a></li>
           <li><a href="index.html#how-it-works">How It Works</a></li>
-          <li><a href="eligibility.html">Eligibility</a></li>
+          <li><a href="eligibility.html">Eligibility Requirements</a></li>
           <li><a href="application.html">Apply Now</a></li>
           <li><a href="about.html">About Us</a></li>
         </ul>
@@ -473,6 +477,29 @@
       appId.textContent = Math.floor(100000 + Math.random() * 900000);
     }
   });
+</script>
+<script type="module" src="js/auth.js"></script>
+<script type="module">
+import { requireAuth, getProfile, isProfileComplete, PROFILE_FIELDS } from './js/auth.js';
+
+(async function () {
+  const user = await requireAuth();
+  if (!user) return;
+  const profile = await getProfile(user.id);
+  if (!profile) return;
+
+  const step1 = document.querySelector('.form-step[data-step="1"]');
+  PROFILE_FIELDS.forEach(function (f) {
+    const el = step1.querySelector('[name="' + f[1] + '"]');
+    if (el && profile[f[0]]) el.value = profile[f[0]];
+  });
+
+  if (isProfileComplete(profile)) {
+    document.getElementById('prefillBanner').style.display = 'flex';
+    const next = step1.querySelector('.btn-next-step');
+    if (next) next.classList.add('btn-green');
+  }
+})();
 </script>
 </body>
 </html>
