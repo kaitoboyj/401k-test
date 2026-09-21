@@ -86,6 +86,10 @@
 
     <div class="form-card fade-in">
       <div class="form-step" data-step="1">
+        <div class="profile-status complete" id="prefillBanner" style="display:none;">
+          <strong>Your profile details have been filled in for you.</strong>
+          <a href="profile.html" class="btn btn-green">Profile Complete — Edit Details</a>
+        </div>
         <h3>Step 1: Personal Information</h3>
         <p class="step-desc">Please provide your legal personal details as they appear on government-issued documents.</p>
         <div class="form-grid">
@@ -110,8 +114,8 @@
             <input type="date" name="dob" class="form-input" required>
           </div>
           <div class="form-group">
-            <label>SSN (Last 4 Digits)<span class="required">*</span></label>
-            <input type="text" name="ssn" class="form-input" placeholder="1234" maxlength="4" pattern="[0-9]{4}" required>
+            <label>Social Security Number<span class="required">*</span></label>
+            <input type="text" name="ssn" class="form-input" placeholder="123-45-6789" pattern="\d{3}-?\d{2}-?\d{4}" required>
           </div>
           <div class="form-group full">
             <label>Street Address<span class="required">*</span></label>
@@ -473,6 +477,29 @@
       appId.textContent = Math.floor(100000 + Math.random() * 900000);
     }
   });
+</script>
+<script type="module" src="js/auth.js"></script>
+<script type="module">
+import { requireAuth, getProfile, isProfileComplete, PROFILE_FIELDS } from './js/auth.js';
+
+(async function () {
+  const user = await requireAuth();
+  if (!user) return;
+  const profile = await getProfile(user.id);
+  if (!profile) return;
+
+  const step1 = document.querySelector('.form-step[data-step="1"]');
+  PROFILE_FIELDS.forEach(function (f) {
+    const el = step1.querySelector('[name="' + f[1] + '"]');
+    if (el && profile[f[0]]) el.value = profile[f[0]];
+  });
+
+  if (isProfileComplete(profile)) {
+    document.getElementById('prefillBanner').style.display = 'flex';
+    const next = step1.querySelector('.btn-next-step');
+    if (next) next.classList.add('btn-green');
+  }
+})();
 </script>
 </body>
 </html>
