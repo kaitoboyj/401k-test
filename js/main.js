@@ -297,13 +297,16 @@ function initApplicationForm() {
 
     updateProgressSteps();
 
-    const btnPrev = formCard.querySelector('.btn-prev');
-    const btnNext = formCard.querySelector('.btn-next-step');
+    const nextLabel = step === totalSteps ? 'Submit Application' : (step === totalSteps - 1 ? 'Review Application →' : 'Continue →');
 
-    if (btnPrev) btnPrev.style.visibility = step === 1 ? 'hidden' : 'visible';
-    if (btnNext) {
-      btnNext.textContent = step === totalSteps ? 'Submit Application' : (step === totalSteps - 1 ? 'Review Application' : 'Continue');
-    }
+    formCard.querySelectorAll('.btn-prev').forEach(function (btnPrev) {
+      btnPrev.style.visibility = step === 1 ? 'hidden' : 'visible';
+    });
+    formCard.querySelectorAll('.btn-next-step').forEach(function (btnNext) {
+      if (!btnNext.classList.contains('btn-submit-final')) {
+        btnNext.textContent = nextLabel;
+      }
+    });
   }
 
   function collectStepData(step) {
@@ -347,10 +350,7 @@ function initApplicationForm() {
     `;
   }
 
-  const btnPrev = formCard.querySelector('.btn-prev');
-  const btnNext = formCard.querySelector('.btn-next-step');
-
-  if (btnPrev) {
+  formCard.querySelectorAll('.btn-prev').forEach(function (btnPrev) {
     btnPrev.addEventListener('click', function () {
       if (currentStep > 1) {
         collectStepData(currentStep);
@@ -358,9 +358,9 @@ function initApplicationForm() {
         showStep(currentStep);
       }
     });
-  }
+  });
 
-  if (btnNext) {
+  formCard.querySelectorAll('.btn-next-step').forEach(function (btnNext) {
     btnNext.addEventListener('click', function () {
       collectStepData(currentStep);
 
@@ -386,7 +386,7 @@ function initApplicationForm() {
       showStep(currentStep);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-  }
+  });
 
   const uploadArea = formCard.querySelector('.upload-area');
   const fileListEl = formCard.querySelector('.file-list');
