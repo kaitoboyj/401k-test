@@ -79,7 +79,19 @@
           <label>Password<span class="required">*</span></label>
           <input type="password" name="password" class="form-input" placeholder="At least 8 characters" minlength="8" required>
         </div>
+        <div class="form-group full">
+          <label>Profile Picture <small style="font-weight:400;">(optional)</small></label>
+          <div class="profile-avatar-row" style="margin-top:.25rem;">
+            <div class="profile-avatar" id="signupAvatarPreview"><span>+</span></div>
+            <div>
+              <button class="btn btn-outline-dark" id="signupAvatarBtn" type="button">Choose Photo</button>
+              <input type="file" id="signupAvatarInput" accept="image/png,image/jpeg" style="display:none;">
+              <small class="field-note" style="display:block;margin-top:.4rem;">JPG or PNG. You can skip this and add a photo later from your profile.</small>
+            </div>
+          </div>
+        </div>
         <button class="btn btn-primary btn-lg" style="width:100%;" type="submit">Create My Account</button>
+        <button class="btn btn-outline-dark" style="width:100%;margin-top:.6rem;" type="submit" id="skipPhotoBtn" formnovalidate>Skip Photo & Create Account</button>
       </form>
     </div>
   </div>
@@ -153,6 +165,35 @@ usernameInput.addEventListener('input', function () {
   }, 350);
 });
 
+let signupAvatarDataUrl = null;
+const signupAvatarPreview = document.getElementById('signupAvatarPreview');
+const signupAvatarInput = document.getElementById('signupAvatarInput');
+
+document.getElementById('signupAvatarBtn').addEventListener('click', function () {
+  signupAvatarInput.click();
+});
+
+signupAvatarInput.addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function () {
+    const img = new Image();
+    img.onload = function () {
+      const size = 256;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const side = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+      signupAvatarDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      signupAvatarPreview.innerHTML = '<img src="' + signupAvatarDataUrl + '" alt="Profile photo">';
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
 signupForm.addEventListener('submit', async function (e) {
   e.preventDefault();
   const fd = new FormData(signupForm);
@@ -173,10 +214,16 @@ signupForm.addEventListener('submit', async function (e) {
   if (error) return show(error.message);
 
   if (data.session) {
+    if (signupAvatarDataUrl) {
+      await supabase.from('profiles').upsert({ id: data.session.user.id, username: username, avatar_url: signupAvatarDataUrl });
+    }
     window.location.replace('profile.html');
   } else {
+    if (signupAvatarDataUrl) localStorage.setItem('pending_avatar', signupAvatarDataUrl);
     show('Account created. Please check your email and click the confirmation link, then sign in to finish setting up your profile.', 'success');
     signupForm.reset();
+    signupAvatarDataUrl = null;
+    signupAvatarPreview.innerHTML = '<span>+</span>';
   }
 });
 </script>
