@@ -1167,6 +1167,37 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--black-900);
 }
 
+.progress-line-pause {
+  position: absolute;
+  top: 9px;
+  left: calc(5% + (4 / 6) * 90%);
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #d4af37;
+  box-shadow: 0 0 0 5px rgba(212,175,55,0.12), 0 6px 18px rgba(10,25,41,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  opacity: 1;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.progress-line-pause.hidden {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.7);
+  pointer-events: none;
+}
+
+.progress-line-pause svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
 .form-card {
   background: var(--white);
   border-radius: 4px;

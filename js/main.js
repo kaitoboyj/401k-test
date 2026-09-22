@@ -308,6 +308,8 @@ function initApplicationForm() {
       if (remaining <= 0) {
         clearInterval(reviewTimer);
         reviewTimer = null;
+        const pauseIcon = document.getElementById('progressPauseIcon');
+        if (pauseIcon) pauseIcon.classList.add('hidden');
         const btn = document.getElementById('btnSkipReview');
         if (btn) {
           btn.textContent = 'Continue to 401(k) Access →';
