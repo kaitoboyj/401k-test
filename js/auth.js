@@ -47,9 +47,11 @@ function initials(profile, user) {
 
 async function renderAccountNav() {
   const slots = document.querySelectorAll('.nav-account');
-  if (!slots.length) return;
 
   const user = await getSessionUser();
+  document.body.classList.toggle('is-authed', !!user);
+
+  if (!slots.length) return;
   const profile = user ? await getProfile(user.id) : null;
 
   slots.forEach(function (slot) {

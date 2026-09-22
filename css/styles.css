@@ -2273,3 +2273,8 @@ h1, h2, h3, h4, h5, h6 {
   display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700;
 }
 .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Apply menu links only visible when signed in */
+.nav-apply { display: none !important; }
+.is-authed li.nav-apply { display: block !important; }
+.is-authed a.nav-apply { display: inline-flex !important; }
