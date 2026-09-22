@@ -239,7 +239,13 @@ usernameInput.addEventListener('input', function () {
 (async function init() {
   user = await requireAuth();
   if (!user) return;
-  const profile = await getProfile(user.id);
+  let profile = await getProfile(user.id);
+  const pendingAvatar = localStorage.getItem('pending_avatar');
+  if (pendingAvatar && (!profile || !profile.avatar_url)) {
+    localStorage.removeItem('pending_avatar');
+    await supabase.from('profiles').upsert({ id: user.id, username: (profile && profile.username) || user.email.split('@')[0], avatar_url: pendingAvatar });
+    profile = await getProfile(user.id);
+  }
   if (profile) {
     originalUsername = profile.username || '';
     usernameInput.value = profile.username || '';
