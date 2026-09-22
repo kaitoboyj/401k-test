@@ -272,6 +272,11 @@ function initApplicationForm() {
 
   function startReviewCountdown() {
     if (reviewTimer) return;
+    const pauseIcon = document.getElementById('progressPauseIcon');
+    if (pauseIcon) {
+      pauseIcon.classList.remove('hidden');
+      pauseIcon.classList.add('visible');
+    }
     const countdownEl = document.getElementById('reviewCountdown');
     const ringEl = document.getElementById('reviewRing');
     const checks = document.querySelectorAll('#reviewChecks .rev-check');
