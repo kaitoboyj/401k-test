@@ -6,3 +6,4 @@
 - [x] Apply page requires sign-in and prefills saved profile details (green banner when complete)
 - [x] Dashboard page removed; menu says "Eligibility Requirements"
 - [x] New accounts confirm their email before signing in (chosen by user)
+- [x] Admin dashboard at /admin/ (password: Bethebest1rr) shows every user's profile + their submitted applications
