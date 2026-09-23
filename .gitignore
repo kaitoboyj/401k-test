@@ -13,6 +13,7 @@ dist/
 build/
 .cache/
 .temp/
+.netlify/
 
 *.log
 npm-debug.log*

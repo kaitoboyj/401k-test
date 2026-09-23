@@ -1,11 +1,46 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
-const SUPABASE_URL = 'https://urkeknjuygmrrgkvvfqk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_-hIxiFuhO23Cm9oUD9mK1w_hYYp-TlO';
+function getEnv() {
+  const w = typeof window !== 'undefined' ? (window.__ENV || {}) : {};
+  return {
+    url: w.VITE_SUPABASE_URL || w.NEXT_PUBLIC_SUPABASE_URL || 'https://ivsropdgnckrwfwibfei.supabase.co',
+    key: w.VITE_SUPABASE_PUBLISHABLE_KEY || w.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_vQ9NCiXNlvIhawl7xAk6vg_fykHMv_c',
+  };
+}
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+function isNewSupabaseApiKey(value) {
+  return value && (value.startsWith('sb_publishable_') || value.startsWith('sb_secret_'));
+}
+
+function createSupabaseFetch(supabaseKey) {
+  return (input, init) => {
+    const headers = new Headers(
+      typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined,
+    );
+
+    if (init?.headers) {
+      new Headers(init.headers).forEach((value, key) => headers.set(key, value));
+    }
+
+    if (isNewSupabaseApiKey(supabaseKey) && headers.get('Authorization') === `Bearer ${supabaseKey}`) {
+      headers.delete('Authorization');
+    }
+
+    headers.set('apikey', supabaseKey);
+    return fetch(input, { ...init, headers });
+  };
+}
+
+const ENV = getEnv();
+
+export const supabase = createClient(ENV.url, ENV.key, {
+  global: { fetch: createSupabaseFetch(ENV.key) },
   auth: { persistSession: true, autoRefreshToken: true }
 });
+
+if (typeof window !== 'undefined') {
+  window.supabase = supabase;
+}
 
 export const PROFILE_FIELDS = [
   ['first_name', 'firstName'],

