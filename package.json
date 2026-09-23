@@ -2,12 +2,16 @@
   "name": "usa-401k-grant-site",
   "version": "1.0.0",
   "description": "USA 401k Grant Application Site with Supabase Backend and Netlify Deployment",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "node server/index.js",
     "start": "node server/index.js",
     "env": "node scripts/generate-env-js.mjs",
-    "build:html": "node scripts/generate-env-js.mjs",
-    "build": "npm run build:html",
+    "build:env": "node scripts/generate-env-js.mjs",
+    "build:copy-dist": "node scripts/copy-dist.mjs",
+    "build": "npm run build:env && npm run build:copy-dist",
     "netlify:build": "npm run build",
     "lint:secrets": "node scripts/lint-secrets.mjs",
     "supabase:link": "supabase link --project-ref ivsropdgnckrwfwibfei",
@@ -20,10 +24,11 @@
   },
   "devDependencies": {
     "@netlify/functions": "^2.6.0",
+    "cookie-parser": "^1.4.6",
     "drizzle-kit": "^0.31.11",
     "drizzle-orm": "^0.45.3",
     "express": "^4.18.2",
-    "cookie-parser": "^1.4.6",
+    "fs-extra": "^11.4.1",
     "multer": "^1.4.5-lts.1",
     "postgres": "^3.4.9"
   }

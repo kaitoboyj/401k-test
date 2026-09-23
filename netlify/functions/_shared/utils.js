@@ -1,12 +1,20 @@
-require('dotenv').config();
+try { require('dotenv').config(); } catch (_e) { /* Netlify CI injects env vars directly; .env file not needed */ }
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
 
 function getSupabase() {
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables');
+    const missing = [];
+    if (!url) missing.push('SUPABASE_URL (or VITE_/NEXT_PUBLIC_ alias)');
+    if (!key) missing.push('SUPABASE_SERVICE_ROLE_KEY (starts with sb_secret_ or eyJhbGciOiJIUzI1NiJ9...)');
+    throw new Error(
+      '[NETLIFY FUNCTION CONFIG ERROR] Missing required environment variable(s): ' +
+      missing.join(', ') +
+      '. Go to Netlify → Site settings → Environment variables and add them.' +
+      ' Then re-trigger a deploy.'
+    );
   }
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -14,14 +22,49 @@ function getSupabase() {
 }
 
 function getPublishableSupabase() {
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY environment variables');
+    const missing = [];
+    if (!url) missing.push('SUPABASE_URL');
+    if (!key) missing.push('SUPABASE_PUBLISHABLE_KEY (starts with sb_publishable_...)');
+    throw new Error(
+      '[NETLIFY FUNCTION CONFIG ERROR] Missing required environment variable(s): ' +
+      missing.join(', ') +
+      '. Go to Netlify → Site settings → Environment variables and add them.' +
+      ' Then re-trigger a deploy.'
+    );
   }
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+}
+
+function checkTelegramEnv() {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) {
+    const missing = [];
+    if (!token) missing.push('TELEGRAM_BOT_TOKEN (format: 123456789:AAxxxx...)');
+    if (!chatId) missing.push('TELEGRAM_CHAT_ID (format: -1001234567890)');
+    throw new Error(
+      '[NETLIFY FUNCTION CONFIG ERROR] Missing Telegram env var(s): ' +
+      missing.join(', ') +
+      '. Add them in Netlify → Site settings → Environment variables → re-deploy.'
+    );
+  }
+  return { token, chatId };
+}
+
+function checkAdminPasswordEnv() {
+  const pw = process.env.ADMIN_PASSWORD;
+  if (!pw) {
+    throw new Error(
+      '[NETLIFY FUNCTION CONFIG ERROR] ADMIN_PASSWORD environment variable is not set.' +
+      ' Add it in Netlify → Site settings → Environment variables → re-deploy.'
+    );
+  }
+  return pw;
 }
 
 function corsHeaders(origin) {

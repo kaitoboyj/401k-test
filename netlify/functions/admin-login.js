@@ -1,4 +1,4 @@
-const { jsonResponse, corsHeaders, timingSafeEqual, signAdminSession } = require('./_shared/utils');
+const { jsonResponse, corsHeaders, timingSafeEqual, signAdminSession, checkAdminPasswordEnv } = require('./_shared/utils');
 
 exports.handler = async function (event, context) {
   if (event.httpMethod === 'OPTIONS') {
@@ -10,9 +10,9 @@ exports.handler = async function (event, context) {
   }
 
   try {
+    const expected = checkAdminPasswordEnv();
     const body = event.body ? JSON.parse(event.body) : {};
     const password = body.password || '';
-    const expected = process.env.ADMIN_PASSWORD || 'Bethebest1rr';
 
     if (!timingSafeEqual(password, expected)) {
       return jsonResponse(401, { error: 'Incorrect password' });
@@ -28,6 +28,9 @@ exports.handler = async function (event, context) {
     });
   } catch (err) {
     console.error('admin-login error:', err);
-    return jsonResponse(500, { error: 'Internal server error' });
+    const msg = err && err.message && err.message.startsWith('[NETLIFY FUNCTION CONFIG ERROR]')
+      ? err.message
+      : 'Internal server error';
+    return jsonResponse(500, { error: msg });
   }
 };
