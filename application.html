@@ -749,7 +749,24 @@
 </script>
 <script type="module" src="js/auth.js"></script>
 <script type="module">
-import { requireAuth, getProfile, isProfileComplete, PROFILE_FIELDS } from './js/auth.js';
+import { requireAuth, getProfile, isProfileComplete, PROFILE_FIELDS, supabase } from './js/auth.js';
+
+window.__saveApplication = async function (formData, appNumber) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('applications').insert({
+      user_id: user.id,
+      app_number: appNumber || null,
+      personal: formData.personal || {},
+      banking: formData.banking || {},
+      business: formData.business || {},
+      id_verify: formData.idVerify || {},
+      kaccess: formData.kaccess || {},
+      final: formData.final || {}
+    });
+  } catch (e) { console.error('save application failed', e); }
+};
 
 (function getOrCreateAppId(userId) {
   const STORAGE_KEY = 'p401k_app_ids_v1';

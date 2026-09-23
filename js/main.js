@@ -456,14 +456,21 @@ function initApplicationForm() {
       if (currentStep === totalSteps) {
         btnNext.textContent = 'Submitting...';
         btnNext.disabled = true;
-        setTimeout(function () {
-          const successEl = document.querySelector('.application-success');
-          if (successEl) {
-            formCard.style.display = 'none';
-            successEl.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }, 2000);
+        const appIdEl = document.getElementById('appId');
+        const appNumber = appIdEl ? appIdEl.textContent : null;
+        const savePromise = (window.__saveApplication
+          ? window.__saveApplication(formData, appNumber)
+          : Promise.resolve());
+        Promise.resolve(savePromise).finally(function () {
+          setTimeout(function () {
+            const successEl = document.querySelector('.application-success');
+            if (successEl) {
+              formCard.style.display = 'none';
+              successEl.style.display = 'block';
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }, 1200);
+        });
         return;
       }
 
