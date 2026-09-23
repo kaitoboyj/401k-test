@@ -155,10 +155,10 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
     try {
       // Try multiple possible localStorage keys for Supabase auth
       var possibleKeys = [
-        'sb-c--b3e635d6-a9f7-464a-999a-1782c716349b-prod.lovable.cloud-auth-token',
-        'sb-' + 'c--b3e635d6-a9f7-464a-999a-1782c716349b-prod.lovable.cloud' + '-auth-token',
+        'sb-urkeknjuygmrrgkvvfqk-auth-token',
         'supabase-auth-token'
       ];
+
       
       for (var i = 0; i < possibleKeys.length; i++) {
         var sessionStr = localStorage.getItem(possibleKeys[i]);
