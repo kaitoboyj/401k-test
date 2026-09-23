@@ -8,6 +8,13 @@
       "when": 1790029757289,
       "tag": "0000_create_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790147143485,
+      "tag": "0001_setup_profiles_applications_admin",
+      "breakpoints": true
     }
   ]
 }

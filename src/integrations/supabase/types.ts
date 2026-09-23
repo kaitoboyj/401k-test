@@ -14,13 +14,157 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          app_number: string | null
+          banking: Json
+          business: Json
+          created_at: string
+          final: Json
+          id: string
+          id_verify: Json
+          kaccess: Json
+          personal: Json
+          user_id: string
+        }
+        Insert: {
+          app_number?: string | null
+          banking?: Json
+          business?: Json
+          created_at?: string
+          final?: Json
+          id?: string
+          id_verify?: Json
+          kaccess?: Json
+          personal?: Json
+          user_id: string
+        }
+        Update: {
+          app_number?: string | null
+          banking?: Json
+          business?: Json
+          created_at?: string
+          final?: Json
+          id?: string
+          id_verify?: Json
+          kaccess?: Json
+          personal?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          citizenship: string | null
+          city: string | null
+          created_at: string
+          dob: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          ssn: string | null
+          state: string | null
+          updated_at: string
+          username: string
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          citizenship?: string | null
+          city?: string | null
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          ssn?: string | null
+          state?: string | null
+          updated_at?: string
+          username: string
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          citizenship?: string | null
+          city?: string | null
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          ssn?: string | null
+          state?: string | null
+          updated_at?: string
+          username?: string
+          zip?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_check: { Args: { pw: string }; Returns: boolean }
+      admin_list_applications: {
+        Args: { pw: string }
+        Returns: {
+          app_number: string | null
+          banking: Json
+          business: Json
+          created_at: string
+          final: Json
+          id: string
+          id_verify: Json
+          kaccess: Json
+          personal: Json
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "applications"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_profiles: {
+        Args: { pw: string }
+        Returns: {
+          address: string | null
+          avatar_url: string | null
+          citizenship: string | null
+          city: string | null
+          created_at: string
+          dob: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          ssn: string | null
+          state: string | null
+          updated_at: string
+          username: string
+          zip: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      username_available: { Args: { check_username: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
